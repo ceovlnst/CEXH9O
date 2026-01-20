@@ -9,19 +9,19 @@
   <!-- Iconos / previsualización al compartir -->
   <meta name="description" content="Gestión de quirófanos: parrilla, lista de espera y herramientas de coordinación – QuirófanosH9O." />
 
-  <link rel="icon" type="image/png" href="https://ceovlnst.github.io/programacionh9o/og-image.png" />
-  <link rel="apple-touch-icon" href="https://ceovlnst.github.io/programacionh9o/og-image.png" />
+  <link rel="icon" type="image/png" href="https://ceovlnst.github.io/programacionh9o/https://ceovlnst.github.io/CEXH9O/og-image.png" />
+  <link rel="apple-touch-icon" href="https://ceovlnst.github.io/programacionh9o/https://ceovlnst.github.io/CEXH9O/og-image.png" />
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Gestión de Quirófanos – QuirófanosH9O" />
   <meta property="og:description" content="Parrilla de quirófanos, lista de espera y coordinación." />
-  <meta property="og:image" content="https://ceovlnst.github.io/programacionh9o/og-image.png" />
+  <meta property="og:image" content="https://ceovlnst.github.io/programacionh9o/https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <meta property="og:url" content="https://ceovlnst.github.io/programacionh9o/" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Gestión de Quirófanos – QuirófanosH9O" />
   <meta name="twitter:description" content="Parrilla de quirófanos, lista de espera y coordinación." />
-  <meta name="twitter:image" content="https://ceovlnst.github.io/programacionh9o/og-image.png" />
+  <meta name="twitter:image" content="https://ceovlnst.github.io/programacionh9o/https://ceovlnst.github.io/CEXH9O/og-image.png" />
 <style>
     :root{
       --bg:#f4f7fb;
@@ -1161,7 +1161,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
-        <img class="logo" src="https://ceovlnst.github.io/programacionh9o/og-image.png" alt="QuirófanosH9O" />
+        <img class="logo" src="https://ceovlnst.github.io/programacionh9o/https://ceovlnst.github.io/CEXH9O/og-image.png" alt="QuirófanosH9O" />
         <div>
           <h1>QuirófanosH9O</h1>
           <small id="appSubtitle">Solicitud de quirófano</small>
@@ -1350,22 +1350,12 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               </div>
 
               <div class="row">
-                <div style="flex:1;min-width:220px">
-                  <label>Usuario (lista)</label>
-                  <select id="stNSDoctorSelect">
-                    <option value="">(Cargando profesionales…)</option>
-                  </select>
                 </div>
-                <div style="flex:1;min-width:220px">
-                  <label>Usuario (email editable)</label>
-                  <input id="stNSDoctorEmail" placeholder="nombre@vithas.es" />
-                </div>
-              </div>
 
               <div class="row">
                 <div style="flex:1;min-width:220px">
                   <label>Etiqueta (grupo / cirujano)</label>
-                  <input id="stNSLabel" placeholder="Ej: Traumatología Dr. X" />
+                  <select id="stNSLabel" /></select>
                 </div>
               </div>
 
@@ -1399,7 +1389,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
                 </div>
                 <div style="flex:1;min-width:240px">
                   <label>Equipo / Servicio (etiqueta)</label>
-                  <input id="stLabel" placeholder="Ej: Traumatología COTA" />
+                  <select id="stLabel" /></select>
                 </div>
               </div>
 
@@ -1773,7 +1763,10 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
     document.body.classList.toggle("master", !!S.isMaster);
 
-  }
+  
+    // Precarga de GruposQuirúrgicos para desplegables (si hay sesión)
+    if(S.pin){ try{ loadGroupsCache(true); }catch(e){} }
+}
   function hideAllViews(){
     ["viewWelcome","viewReserve","viewMine","viewGrid","viewStruct","viewWait","viewReport","viewGroups"]
       .forEach(v => $(v).classList.add("hide"));
@@ -3280,6 +3273,7 @@ function loadGroupsCache(force){
     onSuccess:(res)=>{
       const groups = (res && res.groups) ? res.groups : [];
       S.groupsCache = groups;
+      try{ populateSurgeonDropdowns_(groups); }catch(e){ console.warn("populateSurgeonDropdowns_ failed", e); }
 
       // Mapa normalizado: equipo -> [miembros]
       const map = {};
@@ -3522,6 +3516,38 @@ function normalizeEquipoKey(value){
   // En la parrilla, la Etiqueta suele venir como "E CPLI" (prefijo "E ")
   s = s.replace(/^E\s+/i, "");
   return s.toUpperCase();
+}
+
+function populateSurgeonDropdowns_(groups){
+  // Extrae cirujanos únicos desde GruposQuirúrgicos.
+  // En el backend, el nombre viene en 'nombre' (que puede proceder de columna Nombre o Cirujano).
+  const uniq = new Set();
+  (groups||[]).forEach(g=>{
+    const n = String((g && (g.nombre || g.cirujano || "")) || "").trim();
+    if(n) uniq.add(n);
+  });
+  const list = Array.from(uniq).sort((a,b)=>a.localeCompare(b,'es'));
+
+  const fill = (selId) => {
+    const el = document.getElementById(selId);
+    if(!el) return;
+    const current = el.value || "";
+    el.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "(Seleccionar cirujano)";
+    el.appendChild(opt0);
+    list.forEach(n=>{
+      const op = document.createElement("option");
+      op.value = n;
+      op.textContent = n;
+      el.appendChild(op);
+    });
+    if(current && list.includes(current)) el.value = current;
+  };
+
+  fill("stNSLabel");
+  fill("stLabel");
 }
 
   function getTeamContactSummary(label){
