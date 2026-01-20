@@ -3,24 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestión de Quirófanos – QuirófanosH9O</title>
+  <title>Gestión de CEX – CEXH9O</title>
 
   
   <!-- Iconos / previsualización al compartir -->
-  <meta name="description" content="Gestión de quirófanos: parrilla, lista de espera y herramientas de coordinación – QuirófanosH9O." />
+  <meta name="description" content="Gestión de CEX – CEXH90" />
 
   <link rel="icon" type="image/png" href="https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <link rel="apple-touch-icon" href="https://ceovlnst.github.io/CEXH9O/og-image.png" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Gestión de Quirófanos – QuirófanosH9O" />
-  <meta property="og:description" content="Parrilla de quirófanos, lista de espera y coordinación." />
+  <meta property="og:title" content="Gestión de CEX – CEXH9O" />
+  <meta property="og:description" content="Calendario de CEX." />
   <meta property="og:image" content="https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <meta property="og:url" content="https://ceovlnst.github.io/programacionh9o/" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Gestión de Quirófanos – QuirófanosH9O" />
-  <meta name="twitter:description" content="Parrilla de quirófanos, lista de espera y coordinación." />
+  <meta name="twitter:title" content="Gestión de CEX – CEXH9O" />
+  <meta name="twitter:description" content="Coordinación de CEX" />
   <meta name="twitter:image" content="https://ceovlnst.github.io/CEXH9O/og-image.png" />
 <style>
     :root{
@@ -1161,9 +1161,9 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
-        <img class="logo" src="https://ceovlnst.github.io/CEXH9O/og-image.png" alt="QuirófanosH9O" />
+        <img class="logo" src="https://ceovlnst.github.io/CEXH9O/og-image.png" alt="CEXH9O" />
         <div>
-          <h1>QuirófanosH9O</h1>
+          <h1>CEXH9O</h1>
           <small id="appSubtitle">Solicitud de quirófano</small>
         </div>
       </div>
@@ -1221,7 +1221,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           <button class="btn hide" id="btnGoMine">Mis solicitudes</button>
 
           <button class="btn hide" id="btnGoGrid">Parrilla</button>
-          <button class="btn hide" id="btnGoStruct">Generar Quirófanos</button>
+          <button class="btn hide" id="btnGoStruct">Generar CEX</button>
           <button class="btn hide" id="btnGoWait">Lista de espera</button>
           <button class="btn hide" id="btnGoReport">Reporte</button>
                   <button class="btn hide" id="btnGoGroups">Equipos quirúrgicos</button>
@@ -1317,7 +1317,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
             <button class="btn small" id="btnToggleAdvanced">Búsqueda avanzada</button>
           </div>
           <div id="advancedBox" class="hide" style="margin-top:4px">
-            <label>Quirófanos incluidos en KPIs</label>
+            <label>CEX incluidos en KPIs</label>
             <div id="orCalcChips" class="weekPick"></div>
           </div>
 
@@ -1327,7 +1327,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
         <!-- MASTER: ESTRUCTURALES + NO ESTRUCTURALES -->
         <div id="viewStruct" class="hide">
-          <h2>Generar quirófanos</h2>
+          <h2>Generar CEX</h2>
 
           <div class="structStack">
             <!-- NO ESTRUCTURALES (ARRIBA) -->
@@ -1570,7 +1570,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               <button class="btn small primary" id="btnStructVisualReport">Generar / actualizar</button>
             </div>
           </div>
-          <div class="hint">Distribución de quirófanos estructurales por <b>día</b>, <b>quirófano</b> y <b>sesión</b> (mañana/tarde).</div>
+          <div class="hint">Distribución de cex estructurales por <b>día</b>, <b>quirófano</b> y <b>sesión</b> (mañana/tarde).</div>
           <div id="structVisualReport" class="reportGrid hide"></div>
         </div>
 
@@ -2359,7 +2359,7 @@ S.doctor = doc;
       return d;
     };
 
-    box.appendChild(mkBox("Huecos libres", free, "Celdas libres en quirófanos seleccionados"));
+    box.appendChild(mkBox("Huecos libres", free, "Celdas libres en CEX seleccionados"));
     box.appendChild(mkBox("Bloques no estructurales", non, "Reservas no estructurales"));
     box.appendChild(mkBox("Bloques estructurales", struct, "Programación estructural ese día"));
   }
