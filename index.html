@@ -1354,7 +1354,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
               <div class="row">
                 <div style="flex:1;min-width:220px">
-                  <label>Etiqueta (grupo / cirujano)</label>
+                  <label>Etiqueta (grupo / médico)</label>
                   <select id="stNSLabel" /></select>
                 </div>
               </div>
@@ -2479,13 +2479,13 @@ S.doctor = doc;
 
     const members = (byTeam[match]||[]).slice();
     members.sort((a,b)=>{
-      const na = (a.cirujano || a.nombre || "").toString();
-      const nb = (b.cirujano || b.nombre || "").toString();
+      const na = (a.médico || a.nombre || "").toString();
+      const nb = (b.médico || b.nombre || "").toString();
       return na.localeCompare(nb,"es");
     });
 
     const first = members[0] || {};
-    const firstName = String(first.cirujano || first.nombre || "—").trim();
+    const firstName = String(first.médico || first.nombre || "—").trim();
 
     const emailObj = members.find(x=>String(x.correo||x.email||"").trim());
     const hasEmail = !!String((emailObj && (emailObj.correo||emailObj.email)) || "").trim();
@@ -3353,15 +3353,15 @@ function openGroupsView(){
       const ra = normalizeStr(a.rol||"");
       const rb = normalizeStr(b.rol||"");
       if(ra !== rb) return ra.localeCompare(rb,"es");
-      const na = String(a.nombre||a.cirujano||"").trim();
-      const nb = String(b.nombre||b.cirujano||"").trim();
+      const na = String(a.nombre||a.médico||"").trim();
+      const nb = String(b.nombre||b.médico||"").trim();
       return na.localeCompare(nb,"es");
     });
 
     // Filtrar
     const filtered = !q ? all : all.filter(g=>{
       const hay = [
-        g.equipo, g.nombre||g.cirujano, g.rol, g.especialidad, g.email, g.telefono
+        g.equipo, g.nombre||g.médico, g.rol, g.especialidad, g.email, g.telefono
       ].map(x=>normalizeStr(String(x||""))).join(" ");
       return hay.includes(q);
     });
@@ -3392,11 +3392,11 @@ function openGroupsView(){
         const r = normalizeStr(m.rol||"");
         return r.includes("admin") || r.includes("administrador");
       }) || null;
-      const adminName = String((admin && (admin.nombre||admin.cirujano)) || "").trim() || "—";
+      const adminName = String((admin && (admin.nombre||admin.médico)) || "").trim() || "—";
       const others = members.filter(m=> m !== admin);
 
       const linesHtml = others.map(m=>{
-        const nombre = escapeHtml(String(m.nombre||m.cirujano||"").trim());
+        const nombre = escapeHtml(String(m.nombre||m.médico||"").trim());
         const rol = escapeHtml(String(m.rol||"").trim());
         const esp = escapeHtml(String(m.especialidad||"").trim());
         const mail = escapeHtml(String(m.email||"").trim());
@@ -3519,11 +3519,11 @@ function normalizeEquipoKey(value){
 }
 
 function populateSurgeonDropdowns_(groups){
-  // Extrae cirujanos únicos desde Gruposmédicos.
-  // En el backend, el nombre viene en 'nombre' (que puede proceder de columna Nombre o Cirujano).
+  // Extrae médicos únicos desde Gruposmédicos.
+  // En el backend, el nombre viene en 'nombre' (que puede proceder de columna Nombre o médico).
   const uniq = new Set();
   (groups||[]).forEach(g=>{
-    const n = String((g && (g.nombre || g.cirujano || "")) || "").trim();
+    const n = String((g && (g.nombre || g.médico || "")) || "").trim();
     if(n) uniq.add(n);
   });
   const list = Array.from(uniq).sort((a,b)=>a.localeCompare(b,'es'));
@@ -3535,7 +3535,7 @@ function populateSurgeonDropdowns_(groups){
     el.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
-    opt0.textContent = "(Seleccionar cirujano)";
+    opt0.textContent = "(Seleccionar médico)";
     el.appendChild(opt0);
     list.forEach(n=>{
       const op = document.createElement("option");
@@ -3578,10 +3578,10 @@ function populateSurgeonDropdowns_(groups){
       const ra = String(a.rol||"").toLowerCase() === "administrador" ? 0 : 1;
       const rb = String(b.rol||"").toLowerCase() === "administrador" ? 0 : 1;
       if(ra!==rb) return ra-rb;
-      return String(a.cirujano||a.nombre||"").localeCompare(String(b.cirujano||b.nombre||""),"es");
+      return String(a.médico||a.nombre||"").localeCompare(String(b.médico||b.nombre||""),"es");
     });
     const first = members[0] || {};
-    const name = String(first.cirujano || first.nombre || "").trim();
+    const name = String(first.médico || first.nombre || "").trim();
     const spec = String(first.especialidad || "").trim();
     const contact = (name ? name : "") + (spec ? " · "+spec : "");
     return { team: match, contact };
@@ -3617,9 +3617,9 @@ function groupInfoHtmlForLabel(label){
   }
 
   const members = (byTeam[match]||[]).slice();
-  members.sort((a,b)=>String(a.cirujano||a.nombre||"").localeCompare(String(b.cirujano||b.nombre||""),"es"));
+  members.sort((a,b)=>String(a.médico||a.nombre||"").localeCompare(String(b.médico||b.nombre||""),"es"));
   const first = members[0] || {};
-  const firstName = String(first.cirujano || first.nombre || "—").trim();
+  const firstName = String(first.médico || first.nombre || "—").trim();
   const firstSpec = String(first.especialidad || "").trim();
 
   const emailObj = members.find(x=>String(x.correo||x.email||"").trim());
