@@ -1154,6 +1154,85 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 .srModalBody{ margin-top:8px; font-size:13px; }
 .srModalActions{ margin-top:10px; display:flex; justify-content:flex-end; }
 
+
+/* ===== MODAL HORIZONTAL COMPACTO (Añadir grupo) ===== */
+#modalBack{
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  background: rgba(15,23,42,.12) !important;
+  overflow: auto !important;
+}
+
+#modal{
+  width: min(560px, 94vw) !important;   /* más horizontal */
+  max-height: calc(100vh - 32px) !important;
+  padding: 14px 16px 12px 16px !important;
+  border-radius: 14px !important;
+  overflow: auto !important;
+}
+
+/* Variante específica para el alta de grupo */
+#modal.smallForm{
+  width: min(520px, 94vw) !important;
+}
+
+/* Grid claramente horizontal */
+#modal .formGrid{
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+
+#modal .field label{
+  font-size: 11px !important;
+}
+
+#modal input,
+#modal select{
+  padding: 6px 8px !important;
+  font-size: 13px !important;
+}
+
+#modalActions{
+  margin-top: 10px !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+}
+
+#modalActions .btn{
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+}
+
+
+/* ===== Modal "Añadir grupo" compacto, horizontal y centrado ===== */
+#modalBack.modalBack{
+  background: rgba(15,23,42,.12) !important;
+  overflow:auto !important;
+}
+#modal.modal{
+  width: min(520px, 94vw) !important;
+  max-height: calc(100vh - 32px) !important;
+  overflow:auto !important;
+}
+#modal.modal.smallForm{
+  width: min(480px, 94vw) !important;
+}
+#modal.modal h3{
+  margin:0 0 8px 0 !important;
+}
+#modal.modal .formGrid{
+  display:grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap:8px 10px !important;
+  margin-top:0 !important;
+}
+#modal.modal .field label{ font-size:11px !important; }
+#modal.modal input, #modal.modal select{ padding:6px 8px !important; font-size:13px !important; }
+
 </style>
 </head>
 
@@ -1225,6 +1304,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           <button class="btn hide" id="btnGoWait">Lista de espera</button>
           <button class="btn hide" id="btnGoReport">Reporte</button>
                   <button class="btn hide" id="btnGoGroups">Equipos médicos</button>
+                  <button class="btn hide" id="btnGoAddGroup">Añadir grupo</button>
 </div>
 
         <div id="msgMenu" class="msg hide"></div>
@@ -1584,7 +1664,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
             </div>
             <div class="row" style="gap:8px;min-width:280px;flex:1;max-width:520px">
               <input id="groupsSearch" type="search" placeholder="Buscar equipo, nombre, rol, email o teléfono…" />
-              <button class="btn small ghost" id="groupsClear" type="button">Limpiar</button>
+              
             </div>
           </div>
 
@@ -1814,6 +1894,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     $("btnGoWait").classList.toggle("hide", !S.pin || !master);
     $("btnGoReport").classList.toggle("hide", !S.pin || !master);
     $("btnGoGroups").classList.toggle("hide", !S.pin || !master);
+    $("btnGoAddGroup").classList.toggle("hide", !S.pin || !master);
   }
 
   function todayISO(){
@@ -3469,6 +3550,84 @@ function openGroupsView(){
   }
 }
 
+  function openAddGroupModal(){
+    if(!S.pin || !isMaster()) return;
+
+    const body = `
+      <div class="formGrid">
+        <label>Equipo quirúrgico
+          <input id="agEquipo" type="text" placeholder="Nombre del equipo" />
+        </label>
+        <label>Nombre (miembro)
+          <input id="agNombre" type="text" placeholder="Nombre y apellidos" />
+        </label>
+        <label>Rol
+          <select id="agRol">
+            <option value="">(vacío)</option>
+            <option value="Cirujano">Cirujano</option>
+            <option value="Ayudante">Ayudante</option>
+            <option value="Anestesista">Anestesista</option>
+            <option value="Enfermería">Enfermería</option>
+          </select>
+        </label>
+        <label>Especialidad
+          <input id="agEsp" type="text" placeholder="Ej: Traumatología" />
+        </label>
+        <label>Email
+          <input id="agEmail" type="email" placeholder="correo@dominio.com" />
+        </label>
+        <label>Teléfono
+          <input id="agTel" type="tel" placeholder="Móvil de contacto" />
+        </label>
+      </div>
+    `;
+
+    openModalBase("Añadir grupo quirúrgico", body);
+
+    const act = $("modalActions");
+    if(act){
+      act.innerHTML = `
+        <button class="btn ghost" type="button" id="agCancel">Cancelar</button>
+        <button class="btn good" type="button" id="agSave">Guardar grupo</button>
+      `;
+      $("agCancel").onclick = closeModal;
+      $("agSave").onclick = saveAddGroupFromModal;
+    }
+  }
+
+  function saveAddGroupFromModal(){
+    const equipo = ($("agEquipo")?.value || "").trim();
+    const nombre = ($("agNombre")?.value || "").trim();
+    const rol = ($("agRol")?.value || "").trim();
+    const esp = ($("agEsp")?.value || "").trim();
+    const correo = ($("agEmail")?.value || "").trim();
+    const telefono = ($("agTel")?.value || "").trim();
+
+    if(!equipo){ showMsg($("msgGroups"), "Indica el nombre del equipo.", "warn"); return; }
+    if(!nombre){ showMsg($("msgGroups"), "Indica el nombre del miembro.", "warn"); return; }
+
+    const payload = {
+      equipo,
+      nombre,
+      rol,
+      especialidad: esp,
+      correo,
+      telefono
+    };
+
+    callGAS("addSurgicalGroup", [S.pin, payload], {
+      key:"addGroup",
+      msg:"Añadiendo grupo quirúrgico…",
+      onSuccess:(res)=>{
+        showMsg($("msgGroups"), res?.message || "Grupo añadido.", "ok");
+        closeModal();
+        loadGroupsCache(true);
+      },
+      onFailure:(e)=>{
+        showMsg($("msgGroups"), e?.message || String(e), "bad");
+      }
+    });
+  }
 
 
 function normalizeStr(value){
@@ -4598,7 +4757,9 @@ function openStructReportBlockModal(info){
 
     
 
-    if($("btnGoGroups")) $("btnGoGroups").onclick = ()=>{ go("viewGroups"); openGroupsView(); };$("btnCheckSlots").onclick = checkSlots;
+    if($("btnGoGroups")) $("btnGoGroups").onclick = ()=>{ go("viewGroups"); openGroupsView(); };
+    if($("btnGoAddGroup")) $("btnGoAddGroup").onclick = ()=>{ go("viewGroups"); openGroupsView(); openAddGroupModal(); };
+    $("btnCheckSlots").onclick = checkSlots;
     if($("btnOpenWaitlistFromReserve")) $("btnOpenWaitlistFromReserve").onclick = openWaitlistFromReserve;
     if($("btnLoadMine")) $("btnLoadMine").onclick = loadMine;
 
@@ -4752,6 +4913,234 @@ function openSwapModal(team, context){
   </div>
 </div>
 
+
+
+<style>
+/* ===== OVERRIDE: modal aún más compacto + 4 filas x 2 columnas ===== */
+#modal.smallForm{ width:min(480px, 94vw) !important; }
+#modal{ width:min(520px, 94vw) !important; }
+
+#modal .formGrid{
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+#modal .field label{ font-size:11px !important; }
+#modal input, #modal select{
+  padding: 6px 8px !important;
+  font-size: 13px !important;
+}
+
+#modalActions{
+  margin-top: 10px !important;
+  gap: 6px !important;
+}
+
+#modalActions .btn{
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+}
+
+/* ===== Modal "Añadir grupo" compacto, horizontal y centrado ===== */
+#modalBack.modalBack{
+  background: rgba(15,23,42,.12) !important;
+  overflow:auto !important;
+}
+#modal.modal{
+  width: min(520px, 94vw) !important;
+  max-height: calc(100vh - 32px) !important;
+  overflow:auto !important;
+}
+#modal.modal.smallForm{
+  width: min(480px, 94vw) !important;
+}
+#modal.modal h3{
+  margin:0 0 8px 0 !important;
+}
+#modal.modal .formGrid{
+  display:grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap:8px 10px !important;
+  margin-top:0 !important;
+}
+#modal.modal .field label{ font-size:11px !important; }
+#modal.modal input, #modal.modal select{ padding:6px 8px !important; font-size:13px !important; }
+
+</style>
+
+
+
+<script>
+/**
+ * OVERRIDE v2: "Añadir grupo" como tarjeta compacta horizontal (4 filas x 2 columnas),
+ * sin usar el formulario grande del modal genérico (evita cortes y columnas raras).
+ */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function _val(id){ const el=$(id); return (el && el.value ? el.value.trim() : ""); }
+
+  function _showModal(title, innerHtml){
+    const back = $("modalBack");
+    const modal = $("modal");
+    const t = $("modalTitle");
+    const body = $("modalBody");
+    const form = $("modalForm");
+    const actions = $("modalActions");
+
+    if(t) t.textContent = title || "";
+    if(body){
+      body.classList.remove("msg");           // quitamos caja grande
+      body.style.marginTop = "10px";
+      body.style.padding = "0";
+      body.style.border = "none";
+      body.style.background = "transparent";
+      body.style.boxShadow = "none";
+      body.innerHTML = innerHtml || "";
+    }
+    if(form) form.classList.add("hide");      // escondemos el form enorme
+    if(actions) actions.innerHTML = "";       // acciones las ponemos dentro del body
+
+    if(modal){
+      modal.classList.add("smallForm");
+    }
+    if(back){
+      back.classList.remove("hide");
+    }
+  }
+
+  // Botón cerrar (si existe en tu UI)
+  function _wireClose(){
+    const x = document.querySelector("#modal .x");
+    if(x) x.onclick = closeModal;
+  }
+
+  // Guardar solo equipo (si existe addSurgicalTeam; si no, fallback con addSurgicalGroup)
+  function saveEquipoOnly_(){
+    const equipo = _val("agEquipo");
+    if(!equipo){ alert("Indica el equipo."); return; }
+
+    if(typeof callGAS !== "function"){ alert("callGAS no está disponible."); return; }
+
+    callGAS("addSurgicalTeam", [S?.pin || "", { equipo }], {
+      key:"addTeam",
+      msg:"Guardando equipo…",
+      onSuccess:(res)=>{
+        alert(res?.message || "Equipo guardado.");
+        try{ if(typeof loadSurgicalGroups_ === "function") loadSurgicalGroups_(); }catch(_){}
+        try{ if(typeof openGroupsView === "function") openGroupsView(); }catch(_){}
+        try{ closeModal(); }catch(_){}
+      },
+      onFailure:(e)=>{
+        // fallback: crea una fila marcador para el equipo
+        callGAS("addSurgicalGroup", [S?.pin || "", { equipo, nombre:"(Equipo)", rol:"Equipo", especialidad:"", correo:"", telefono:"" }], {
+          key:"addTeam2",
+          msg:"Guardando equipo…",
+          onSuccess:(res2)=>{
+            alert(res2?.message || "Equipo guardado.");
+            try{ if(typeof loadSurgicalGroups_ === "function") loadSurgicalGroups_(); }catch(_){}
+            try{ if(typeof openGroupsView === "function") openGroupsView(); }catch(_){}
+            try{ closeModal(); }catch(_){}
+          },
+          onFailure:(e2)=> alert(e2?.message || String(e2))
+        });
+      }
+    });
+  }
+
+  function saveMiembro_(){
+    const equipo = _val("agEquipo");
+    const nombre = _val("agNombre");
+    if(!equipo){ alert("Indica el equipo."); return; }
+    if(!nombre){ alert("Indica el nombre del miembro."); return; }
+
+    const payload = {
+      equipo,
+      nombre,
+      rol: _val("agRol"),
+      especialidad: _val("agEsp"),
+      correo: _val("agEmail"),
+      telefono: _val("agTel")
+    };
+
+    if(typeof callGAS !== "function"){ alert("callGAS no está disponible."); return; }
+
+    callGAS("addSurgicalGroup", [S?.pin || "", payload], {
+      key:"addGroup",
+      msg:"Guardando…",
+      onSuccess:(res)=>{
+        alert(res?.message || "Miembro guardado.");
+        try{ if(typeof loadSurgicalGroups_ === "function") loadSurgicalGroups_(); }catch(_){}
+        try{ if(typeof openGroupsView === "function") openGroupsView(); }catch(_){}
+        try{ closeModal(); }catch(_){}
+      },
+      onFailure:(e)=> alert(e?.message || String(e))
+    });
+  }
+
+  // Redefinimos openAddGroupModal para que siempre use este layout compacto
+  window.openAddGroupModal = function(){
+    const inner = `
+      <div class="formGrid" style="margin-top:0">
+        <!-- FILA 1 -->
+        <div class="field">
+          <label>Equipo <span class="mut">(obligatorio)</span></label>
+          <input id="agEquipo" placeholder="Ej: TRAUMA / OFTALMO / COTA" />
+        </div>
+        <div class="field" style="display:flex;justify-content:flex-end;align-items:flex-end">
+          <button class="btn" id="agSaveTeam" type="button" style="width:100%">Guardar equipo</button>
+        </div>
+
+        <!-- FILA 2 -->
+        <div class="field">
+          <label>Nombre (miembro)</label>
+          <input id="agNombre" placeholder="Nombre y apellidos" />
+        </div>
+        <div class="field">
+          <label>Rol</label>
+          <select id="agRol">
+            <option value="">(vacío)</option>
+            <option>Administrador</option>
+            <option>Usuario</option>
+          </select>
+        </div>
+
+        <!-- FILA 3 -->
+        <div class="field">
+          <label>Especialidad</label>
+          <input id="agEsp" placeholder="Ej: Traumatología" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input id="agEmail" placeholder="correo@dominio.com" />
+        </div>
+
+        <!-- FILA 4 -->
+        <div class="field">
+          <label>Teléfono</label>
+          <input id="agTel" placeholder="600 000 000" />
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end">
+          <span style="font-size:12px;color:var(--muted)">Añade miembro o guarda solo el equipo.</span>
+        </div>
+      </div>
+
+      <div id="modalActions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button class="btn ghost" id="agCancel" type="button">Cancelar</button>
+        <button class="btn good" id="agSave" type="button">Guardar miembro</button>
+      </div>
+    `;
+
+    _showModal("Añadir grupo quirúrgico", inner);
+    _wireClose();
+
+    $("agCancel").onclick = function(){ try{ closeModal(); }catch(e){} };
+    $("agSaveTeam").onclick = saveEquipoOnly_;
+    $("agSave").onclick = saveMiembro_;
+
+    setTimeout(()=>{ try{ $("agEquipo").focus(); }catch(e){} }, 30);
+  };
+})();
+</script>
 
 </body>
 </html>
