@@ -3,24 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestión de Quirófanos – CEX</title>
+  <title>Gestión de CEXs – CEX</title>
 
   
   <!-- Iconos / previsualización al compartir -->
-  <meta name="description" content="Gestión de quirófanos: parrilla, lista de espera y herramientas de coordinación – CEX." />
+  <meta name="description" content="Gestión de CEXs: parrilla, lista de espera y herramientas de coordinación – CEX." />
 
   <link rel="icon" type="image/png" href="https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <link rel="apple-touch-icon" href="https://ceovlnst.github.io/CEXH9O/og-image.png" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Gestión de Quirófanos – CEX" />
-  <meta property="og:description" content="Parrilla de quirófanos, lista de espera y coordinación." />
+  <meta property="og:title" content="Gestión de CEXs – CEX" />
+  <meta property="og:description" content="Parrilla de CEXs, lista de espera y coordinación." />
   <meta property="og:image" content="https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <meta property="og:url" content="https://ceovlnst.github.io/programacionh9o/" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Gestión de Quirófanos – CEX" />
-  <meta name="twitter:description" content="Parrilla de quirófanos, lista de espera y coordinación." />
+  <meta name="twitter:title" content="Gestión de CEXs – CEX" />
+  <meta name="twitter:description" content="Parrilla de CEXs, lista de espera y coordinación." />
   <meta name="twitter:image" content="https://ceovlnst.github.io/CEXH9O/og-image.png" />
 <style>
     :root{
@@ -1164,7 +1164,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
         <img class="logo" src="https://ceovlnst.github.io/CEXH9O/og-image.png" alt="CEX" />
         <div>
           <h1>CEX</h1>
-          <small id="appSubtitle">Solicitud de quirófano</small>
+          <small id="appSubtitle">Solicitud de CEX</small>
         </div>
       </div>
 
@@ -1217,11 +1217,11 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
         <h2>Panel</h2>
         <div class="actions">
-          <button class="btn hide" id="btnGoReserve">Solicitar quirófano</button>
+          <button class="btn hide" id="btnGoReserve">Solicitar CEX</button>
           <button class="btn hide" id="btnGoMine">Mis solicitudes</button>
 
           <button class="btn hide" id="btnGoGrid">Parrilla</button>
-          <button class="btn hide" id="btnGoStruct">Generar Quirófanos</button>
+          <button class="btn hide" id="btnGoStruct">Generar CEXs</button>
           <button class="btn hide" id="btnGoWait">Lista de espera</button>
           <button class="btn hide" id="btnGoReport">Reporte</button>
                   <button class="btn hide" id="btnGoGroups">Equipos quirúrgicos</button>
@@ -1235,7 +1235,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 <div class="card">
         <!-- USER: RESERVAR -->
         <div id="viewReserve" class="hide">
-          <h2>Solicitud de quirófano</h2>
+          <h2>Solicitud de CEX</h2>
           <div class="row">
             <div style="flex:1;min-width:260px">
               <label>Fecha</label>
@@ -1317,7 +1317,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
             <button class="btn small" id="btnToggleAdvanced">Búsqueda avanzada</button>
           </div>
           <div id="advancedBox" class="hide" style="margin-top:4px">
-            <label>Quirófanos incluidos en KPIs</label>
+            <label>CEXs incluidos en KPIs</label>
             <div id="orCalcChips" class="weekPick"></div>
           </div>
 
@@ -1327,12 +1327,12 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
         <!-- MASTER: ESTRUCTURALES + NO ESTRUCTURALES -->
         <div id="viewStruct" class="hide">
-          <h2>Generar quirófanos</h2>
+          <h2>Generar CEXs</h2>
 
           <div class="structStack">
             <!-- NO ESTRUCTURALES (ARRIBA) -->
             <div class="structPanel">
-              <h3>Crear quirófano NO estructural (Master)</h3>
+              <h3>Crear CEX NO estructural (Master)</h3>
 
               <div class="row">
                 <div style="flex:1;min-width:200px">
@@ -1395,7 +1395,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
               <div class="row">
                 <div style="flex:1;min-width:240px">
-                  <label>Quirófano</label>
+                  <label>CEX</label>
                   <select id="stOr"></select>
                 </div>
                 <div style="width:160px">
@@ -1481,7 +1481,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
                 </div>
 
                 <div class="field">
-                  <label>Filtrar por quirófano</label>
+                  <label>Filtrar por CEX</label>
                   <select id="structOrFilter">
                     <option value="">(Todos)</option>
                   </select>
@@ -1570,7 +1570,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               <button class="btn small primary" id="btnStructVisualReport">Generar / actualizar</button>
             </div>
           </div>
-          <div class="hint">Distribución de quirófanos estructurales por <b>día</b>, <b>quirófano</b> y <b>sesión</b> (mañana/tarde).</div>
+          <div class="hint">Distribución de CEXs estructurales por <b>día</b>, <b>CEX</b> y <b>sesión</b> (mañana/tarde).</div>
           <div id="structVisualReport" class="reportGrid hide"></div>
         </div>
 
@@ -1634,7 +1634,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     </div>
 
     <div class="field">
-      <label>Quirófano</label>
+      <label>CEX</label>
       <select id="mfOr"></select>
     </div>
 
@@ -1758,7 +1758,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     // Subtítulo dinámico
     const sub = $("appSubtitle");
     if(sub){
-      sub.textContent = S.isMaster ? "Solicitud de quirófano + coordinación" : "Solicitud de quirófano";
+      sub.textContent = S.isMaster ? "Solicitud de CEX + coordinación" : "Solicitud de CEX";
     }
 
     document.body.classList.toggle("master", !!S.isMaster);
@@ -1956,7 +1956,7 @@ function callGAS(fnName, args, opt){
 
   // ===== OR filter para KPIs parrilla =====
   function initOrCalcDefaults(){
-    const exclude = new Set(["Sótano 6","Quirófano Híbrido","Urgencias","Paritorio 1","Paritorio 2"]);
+    const exclude = new Set(["Sótano 6","CEX Híbrido","Urgencias","Paritorio 1","Paritorio 2"]);
     S.orCalcSelected = OR_LIST.filter(name => !exclude.has(name));
   }
 
@@ -2197,7 +2197,7 @@ S.doctor = doc;
         const wrap = $("mineBox");
         const table = document.createElement("table");
         const thead = document.createElement("thead");
-        thead.innerHTML = "<tr><th>Fecha</th><th>Hora</th><th>Fin</th><th>Quirófano</th><th>Título</th><th></th></tr>";
+        thead.innerHTML = "<tr><th>Fecha</th><th>Hora</th><th>Fin</th><th>CEX</th><th>Título</th><th></th></tr>";
         table.appendChild(thead);
         const tbody = document.createElement("tbody");
         list.forEach(r=>{
@@ -2279,7 +2279,7 @@ S.doctor = doc;
     const thead = document.createElement("thead");
     const trh = document.createElement("tr");
     const thOr = document.createElement("th");
-    thOr.textContent = "Quirófano";
+    thOr.textContent = "CEX";
     trh.appendChild(thOr);
 
     data.hoursOrder.forEach(h=>{
@@ -2359,7 +2359,7 @@ S.doctor = doc;
       return d;
     };
 
-    box.appendChild(mkBox("Huecos libres", free, "Celdas libres en quirófanos seleccionados"));
+    box.appendChild(mkBox("Huecos libres", free, "Celdas libres en CEXs seleccionados"));
     box.appendChild(mkBox("Bloques no estructurales", non, "Reservas no estructurales"));
     box.appendChild(mkBox("Bloques estructurales", struct, "Programación estructural ese día"));
   }
@@ -2524,7 +2524,7 @@ S.doctor = doc;
       <div class="blkWrap">
         <div class="blkGrid">
           <div class="blkK">Fecha</div><div class="blkV">${escapeHtml(date||"—")}</div>
-          <div class="blkK">Quirófano</div><div class="blkV">${escapeHtml(orName||"—")}</div>
+          <div class="blkK">CEX</div><div class="blkV">${escapeHtml(orName||"—")}</div>
           ${h ? `<div class="blkK">Hora</div><div class="blkV">${escapeHtml(h)}:00</div>` : ``}
           ${dur ? `<div class="blkK">Duración</div><div class="blkV">${escapeHtml(dur)} h</div>` : ``}
           ${label ? `<div class="blkK">Etiqueta</div><div class="blkV">${escapeHtml(label)}</div>` : ``}
@@ -2636,7 +2636,7 @@ $("modalBack").classList.add("hide");
     const body = `
       Hueco libre\n
       Fecha: ${fmtDMY(ctx.dateStr)}\n
-      Quirófano: ${ctx.orName}\n
+      CEX: ${ctx.orName}\n
       Hora: ${String(ctx.hour).padStart(2,"0")}:00\n
       (Solo consulta desde la parrilla)
     `;
@@ -2667,11 +2667,11 @@ $("modalBack").classList.add("hide");
 
   function deleteNonStructBlock(){
     if(!S.modalCtx || !S.modalCtx.eventId) return;
-    if(!confirm("¿Seguro que quieres ELIMINAR este quirófano NO estructural?")) return;
+    if(!confirm("¿Seguro que quieres ELIMINAR este CEX NO estructural?")) return;
 
     callGAS("masterDeleteEvent", [S.pin, S.modalCtx.eventId], {
       key:"delNonStruct",
-      msg:"Eliminando quirófano no estructural…",
+      msg:"Eliminando CEX no estructural…",
       onSuccess:(res)=>{
         showMsg($("modalMsg"), res?.message || "Bloque eliminado.", "ok");
         loadGrid();
@@ -2940,7 +2940,7 @@ const mfOr = $("mfOr");
   }
 
   
-  // ✅ Deduplicar reglas estructurales (mismo equipo/día/hora/quirófano/cadencia, distintos IDs)
+  // ✅ Deduplicar reglas estructurales (mismo equipo/día/hora/CEX/cadencia, distintos IDs)
   function dedupeStructuralRules_(rawRules){
     const map = new Map(); // key -> bestRule
     let dupCount = 0;
@@ -3099,7 +3099,7 @@ function renderStructFiltersAndList(){
 
     const table = document.createElement("table");
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>ID</th><th>Equipo</th><th>Quirófano</th><th>Inicio</th><th>Fin</th><th>Hora</th><th>Duración</th><th>Cadencia</th><th>Días</th></tr>";
+    thead.innerHTML = "<tr><th>ID</th><th>Equipo</th><th>CEX</th><th>Inicio</th><th>Fin</th><th>Hora</th><th>Duración</th><th>Cadencia</th><th>Días</th></tr>";
     table.appendChild(thead);
     const tbody = document.createElement("tbody");
 
@@ -3321,7 +3321,7 @@ function loadGroupsCache(force){
   }
 
   function wireAskSwapButton(ctx){
-    // Guarda contexto para el email (fecha/quirófano/hora etc.)
+    // Guarda contexto para el email (fecha/CEX/hora etc.)
     S.selectedCellContext = ctx || null;
 
     const btn = $("btnAskSwapFromBlock");
@@ -3810,7 +3810,7 @@ function groupInfoHtmlForLabel(label){
         if(!slots.length){
           showMsg($("msgStructNon"),
             afterCreate
-              ? "Quirófano creado. No quedan huecos libres para esa duración en ese día (ya actualizado)."
+              ? "CEX creado. No quedan huecos libres para esa duración en ese día (ya actualizado)."
               : "No hay huecos libres que permitan esa duración en ese día.",
             "warn"
           );
@@ -3821,7 +3821,7 @@ function groupInfoHtmlForLabel(label){
 
         showMsg($("msgStructNon"),
           afterCreate
-            ? "Quirófano creado correctamente. Huecos actualizados: selecciona otro hueco si quieres asignar uno nuevo."
+            ? "CEX creado correctamente. Huecos actualizados: selecciona otro hueco si quieres asignar uno nuevo."
             : "Selecciona un hueco y después pulsa «Asignar hueco seleccionado».",
           "ok"
         );
@@ -3864,16 +3864,16 @@ function groupInfoHtmlForLabel(label){
       doctorEmail: email
     };
 
-    if(!confirm(`¿Crear quirófano NO estructural para ${email} el ${fmtDMY(dateStr)} en ${orName} a las ${String(slot.startHour).padStart(2,"0")}:00 durante ${hours} h?`)){
+    if(!confirm(`¿Crear CEX NO estructural para ${email} el ${fmtDMY(dateStr)} en ${orName} a las ${String(slot.startHour).padStart(2,"0")}:00 durante ${hours} h?`)){
       return;
     }
 
     callGAS("masterCreateNonStructural", [S.pin, payload], {
       key:"masterCreateNonStruct",
-      msg:"Creando quirófano no estructural…",
+      msg:"Creando CEX no estructural…",
       disable: [$("btnNSAssignSlot"), $("btnNSFindSlots"), $("stNSDoctorSelect"), $("stNSDoctorEmail"), $("stNSLabel"), $("stNSDate"), $("stNSDur")],
       onSuccess:(res)=>{
-        showMsg($("msgStructNon"), res?.message || "Quirófano no estructural creado.", "ok");
+        showMsg($("msgStructNon"), res?.message || "CEX no estructural creado.", "ok");
         masterFindNonStructSlots({ refreshOnly:true, afterCreate:true, dateStr, hours });
 
         const gdDate = $("gdDate").value;
@@ -3968,7 +3968,7 @@ function groupInfoHtmlForLabel(label){
 
   function acceptWait(waitId){
     if(!waitId) return;
-    if(!confirm("¿Asignar quirófano automáticamente para esta solicitud?")) return;
+    if(!confirm("¿Asignar CEX automáticamente para esta solicitud?")) return;
 
     callGAS("acceptWaitlist", [S.pin, waitId], {
       key:"acceptWait",
