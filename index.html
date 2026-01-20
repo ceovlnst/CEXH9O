@@ -449,7 +449,7 @@
       min-width:0;
     }
   
-    /* --- Equipos quirúrgicos (modal compacto + buscador) --- */
+    /* --- Equipos médicos (modal compacto + buscador) --- */
     .groupsWrap{margin-top:8px}
     .groupsTools{display:flex;gap:8px;align-items:center;margin:8px 0 10px 0}
     .groupsTools input{
@@ -459,7 +459,7 @@
     .groupsTools input:focus{border-color: rgba(29,78,216,.45); box-shadow: 0 0 0 3px rgba(29,78,216,.10)}
     .groupsCount{color:var(--muted); font-size:12px; margin:0 0 6px 0}
     .groupsList{max-height: 70vh; overflow:auto; padding-right:6px}
-    /* --- Equipos quirúrgicos: tarjetas bonitas y compactas (accordion) --- */
+    /* --- Equipos médicos: tarjetas bonitas y compactas (accordion) --- */
 .gGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
 @media (max-width: 720px){ .gGrid{grid-template-columns:1fr} }
 
@@ -538,7 +538,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   color:var(--muted);
   font-size:12px;
 }
-/* --- fin equipos quirúrgicos --- */
+/* --- fin equipos médicos --- */
 /* --- Modal genérico --- */
   .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px}
   .modalCard{width:min(640px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(2,6,23,.25);padding:14px}
@@ -550,7 +550,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
 
   /* ===============================
-     Grupos quirúrgicos (UI mejorada)
+     Grupos médicos (UI mejorada)
      =============================== */
   .gToolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}
   .gSearchWrap{flex:1;position:relative}
@@ -591,7 +591,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     z-index:2;
   }
 
-  /* --- Equipos quirúrgicos: lista simple --- */
+  /* --- Equipos médicos: lista simple --- */
   .teamTools{display:flex;gap:10px;align-items:center;margin-top:8px}
   .teamTools input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#fff}
   .teamList{display:flex;flex-direction:column;gap:8px;margin-top:8px}
@@ -633,7 +633,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   @media(min-width: 980px){
     .rightCol{position:sticky; top:12px; align-self:start; display:flex; flex-direction:column; gap:12px; height:calc(100vh - 24px); overflow:auto; padding-right:2px}
   }
-  /* Equipos quirúrgicos: lista 1:1 con el menú (botones en .actions) */
+  /* Equipos médicos: lista 1:1 con el menú (botones en .actions) */
   #groupsPanelList .btn{
     justify-content:space-between;
     text-align:left;
@@ -1224,7 +1224,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           <button class="btn hide" id="btnGoStruct">Generar CEXs</button>
           <button class="btn hide" id="btnGoWait">Lista de espera</button>
           <button class="btn hide" id="btnGoReport">Reporte</button>
-                  <button class="btn hide" id="btnGoGroups">Equipos quirúrgicos</button>
+                  <button class="btn hide" id="btnGoGroups">Equipos médicos</button>
 </div>
 
         <div id="msgMenu" class="msg hide"></div>
@@ -1575,11 +1575,11 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
         </div>
 
 
-        <!-- MASTER: EQUIPOS QUIRÚRGICOS -->
+        <!-- MASTER: EQUIPOS médicos -->
         <div id="viewGroups" class="hide">
           <div class="row" style="justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
             <div>
-              <h2 style="margin:0">Equipos quirúrgicos</h2>
+              <h2 style="margin:0">Equipos médicos</h2>
               <div class="mut" id="groupsCount" style="margin-top:4px">—</div>
             </div>
             <div class="row" style="gap:8px;min-width:280px;flex:1;max-width:520px">
@@ -1764,7 +1764,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     document.body.classList.toggle("master", !!S.isMaster);
 
   
-    // Precarga de GruposQuirúrgicos para desplegables (si hay sesión)
+    // Precarga de Gruposmédicos para desplegables (si hay sesión)
     if(S.pin){ try{ loadGroupsCache(true); }catch(e){} }
 }
   function hideAllViews(){
@@ -2016,7 +2016,7 @@ function callGAS(fnName, args, opt){
       onSuccess: (doc)=>{
         S.pin = pin;
         
-      // precarga equipos quirúrgicos (para botón de cambio en Calendario)
+      // precarga equipos médicos (para botón de cambio en Calendario)
       loadGroupsCache(true);
 S.doctor = doc;
         const tipo = String(doc.tipo || doc.rol || "").trim();
@@ -2491,7 +2491,7 @@ S.doctor = doc;
     const hasEmail = !!String((emailObj && (emailObj.correo||emailObj.email)) || "").trim();
 
     if(!hasEmail){
-      return `<div class="mut">Equipo <b>${escapeHtml(match)}</b> sin email en GruposQuirúrgicos.</div>`;
+      return `<div class="mut">Equipo <b>${escapeHtml(match)}</b> sin email en Gruposmédicos.</div>`;
     }
 
     // guarda contexto y crea botón
@@ -3263,13 +3263,13 @@ function renderStructFiltersAndList(){
 
   
 
-// ===== GRUPOS QUIRÚRGICOS (consulta) =====
+// ===== GRUPOS médicos (consulta) =====
 function loadGroupsCache(force){
   if(!S.pin) return;
   if(S.groupsLoaded && !force) return;
   callGAS("listSurgicalGroups", [S.pin], {
     key:"listGroups",
-    msg:"Cargando equipos quirúrgicos…",
+    msg:"Cargando equipos médicos…",
     onSuccess:(res)=>{
       const groups = (res && res.groups) ? res.groups : [];
       S.groupsCache = groups;
@@ -3519,7 +3519,7 @@ function normalizeEquipoKey(value){
 }
 
 function populateSurgeonDropdowns_(groups){
-  // Extrae cirujanos únicos desde GruposQuirúrgicos.
+  // Extrae cirujanos únicos desde Gruposmédicos.
   // En el backend, el nombre viene en 'nombre' (que puede proceder de columna Nombre o Cirujano).
   const uniq = new Set();
   (groups||[]).forEach(g=>{
@@ -3627,7 +3627,7 @@ function groupInfoHtmlForLabel(label){
 
   const btn = hasEmail
     ? `<div class="dlgActions"><button type="button" class="btn good" id="btnAskSwapFromBlock" data-team="${escapeHtml(match)}">Pedir cambio</button></div>`
-    : `<div class="mut" style="margin-top:10px">Equipo <b>${escapeHtml(match)}</b> sin email en GruposQuirúrgicos.</div>`;
+    : `<div class="mut" style="margin-top:10px">Equipo <b>${escapeHtml(match)}</b> sin email en Gruposmédicos.</div>`;
 
   return `
     <div class="dlgGrid">
