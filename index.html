@@ -7,20 +7,20 @@
 
   
   <!-- Iconos / previsualización al compartir -->
-  <meta name="description" content="Gestión de CEXs: parrilla, lista de espera y herramientas de coordinación – CEX." />
+  <meta name="description" content="Gestión de CEXs: Calendario, lista de espera y herramientas de coordinación – CEX." />
 
   <link rel="icon" type="image/png" href="https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <link rel="apple-touch-icon" href="https://ceovlnst.github.io/CEXH9O/og-image.png" />
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Gestión de CEXs – CEX" />
-  <meta property="og:description" content="Parrilla de CEXs, lista de espera y coordinación." />
+  <meta property="og:description" content="Calendario de CEXs, lista de espera y coordinación." />
   <meta property="og:image" content="https://ceovlnst.github.io/CEXH9O/og-image.png" />
   <meta property="og:url" content="https://ceovlnst.github.io/programacionh9o/" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Gestión de CEXs – CEX" />
-  <meta name="twitter:description" content="Parrilla de CEXs, lista de espera y coordinación." />
+  <meta name="twitter:description" content="Calendario de CEXs, lista de espera y coordinación." />
   <meta name="twitter:image" content="https://ceovlnst.github.io/CEXH9O/og-image.png" />
 <style>
     :root{
@@ -1220,7 +1220,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           <button class="btn hide" id="btnGoReserve">Solicitar CEX</button>
           <button class="btn hide" id="btnGoMine">Mis solicitudes</button>
 
-          <button class="btn hide" id="btnGoGrid">Parrilla</button>
+          <button class="btn hide" id="btnGoGrid">Calendario</button>
           <button class="btn hide" id="btnGoStruct">Generar CEXs</button>
           <button class="btn hide" id="btnGoWait">Lista de espera</button>
           <button class="btn hide" id="btnGoReport">Reporte</button>
@@ -1288,7 +1288,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 
         <!-- MASTER: GRID -->
         <div id="viewGrid" class="hide">
-          <h2>Parrilla quirúrgica</h2>
+          <h2>Calendario quirúrgica</h2>
           <div class="row">
             <div style="flex:1;min-width:260px">
               <label>Fecha</label>
@@ -1306,7 +1306,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               </select>
             </div>
             <div class="actions" style="margin-top:26px">
-              <button class="btn primary" id="btnLoadGrid">Cargar parrilla</button>
+              <button class="btn primary" id="btnLoadGrid">Cargar Calendario</button>
 </div>
           </div>
 
@@ -1802,7 +1802,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   }
 
 
-  // menú: quitar parrilla a usuarios generales
+  // menú: quitar Calendario a usuarios generales
   function setMenuButtons(){
     const master = isMaster();
     $("btnGoReserve").classList.toggle("hide", !S.pin || master);
@@ -1954,7 +1954,7 @@ function callGAS(fnName, args, opt){
     })();
   }
 
-  // ===== OR filter para KPIs parrilla =====
+  // ===== OR filter para KPIs Calendario =====
   function initOrCalcDefaults(){
     const exclude = new Set(["Sótano 6","CEX Híbrido","Urgencias","Paritorio 1","Paritorio 2"]);
     S.orCalcSelected = OR_LIST.filter(name => !exclude.has(name));
@@ -2016,7 +2016,7 @@ function callGAS(fnName, args, opt){
       onSuccess: (doc)=>{
         S.pin = pin;
         
-      // precarga equipos quirúrgicos (para botón de cambio en parrilla)
+      // precarga equipos quirúrgicos (para botón de cambio en Calendario)
       loadGroupsCache(true);
 S.doctor = doc;
         const tipo = String(doc.tipo || doc.rol || "").trim();
@@ -2254,7 +2254,7 @@ S.doctor = doc;
     callGAS("getGridOccupancy", [S.pin, dateStr], {
       key:"grid",
       disable:[$("btnLoadGrid")],
-      msg:"Cargando parrilla…",
+      msg:"Cargando Calendario…",
       onSuccess:(res)=>{
         S.lastGrid = res;
         renderGrid(res);
@@ -2638,7 +2638,7 @@ $("modalBack").classList.add("hide");
       Fecha: ${fmtDMY(ctx.dateStr)}\n
       CEX: ${ctx.orName}\n
       Hora: ${String(ctx.hour).padStart(2,"0")}:00\n
-      (Solo consulta desde la parrilla)
+      (Solo consulta desde la Calendario)
     `;
     openModalBase("Hueco libre", escapeHtml(body));
     wireAskSwapButton(ctx);
@@ -3513,7 +3513,7 @@ function normalizeEquipoKey(value){
   let s = String(value||"").trim();
   if(!s) return "";
   s = s.replace(/\s+/g, " ");
-  // En la parrilla, la Etiqueta suele venir como "E CPLI" (prefijo "E ")
+  // En la Calendario, la Etiqueta suele venir como "E CPLI" (prefijo "E ")
   s = s.replace(/^E\s+/i, "");
   return s.toUpperCase();
 }
