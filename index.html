@@ -1430,27 +1430,12 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               </div>
 
               <div class="row">
+                </div>
+
+              <div class="row">
                 <div style="flex:1;min-width:220px">
                   <label>Etiqueta (grupo / médico)</label>
                   <select id="stNSLabel" /></select>
-                </div>
-              </div>
-
-              <div class="row">
-                <div style="flex:1;min-width:220px">
-                  <label>Buscar profesional</label>
-                  <input id="stNSDoctorSearch" placeholder="Escribe parte del nombre o email…" />
-                </div>
-                <div style="flex:1;min-width:220px">
-                  <label>Seleccionar profesional</label>
-                  <select id="stNSDoctorSelect"></select>
-                </div>
-              </div>
-
-              <div class="row">
-                <div style="flex:1;min-width:220px">
-                  <label>Email (editable)</label>
-                  <input id="stNSDoctorEmail" placeholder="correo@dominio" />
                 </div>
               </div>
 
@@ -3827,40 +3812,9 @@ function groupInfoHtmlForLabel(label){
       opt.textContent = label;
       sel.appendChild(opt);
     });
-
-  }
-
-  function setupDoctorSearchMaster(){
-    const search = $("stNSDoctorSearch");
-    const sel = $("stNSDoctorSelect");
-    if(!search || !sel) return;
-
-    search.oninput = ()=>{
-      const term = (search.value || "").toLowerCase().trim();
-
-      // Reconstruimos opciones filtradas
-      sel.innerHTML = '<option value="">(Seleccionar usuario)</option>';
-
-      const list = S.doctorList || [];
-      list.forEach(d=>{
-        const email = d.correo || d.email || d.emailVisible || "";
-        if(!email) return;
-        const name = [d.nombre, d.apellidos].filter(Boolean).join(" ");
-        const label = name ? `${name} – ${email}` : email;
-        const haystack = (label + " " + (d.especialidad || "")).toLowerCase();
-
-        if(!term || haystack.includes(term)){
-          const opt = document.createElement("option");
-          opt.value = email;
-          opt.textContent = label;
-          sel.appendChild(opt);
-        }
-      });
-    };
   }
 
   function loadDoctorOptionsMaster(){
-{
     if(S.doctorListLoaded) return;
     callGAS("listDoctorsForMaster", [S.pin], {
       key:"listDoctorsMaster",
@@ -3869,7 +3823,6 @@ function groupInfoHtmlForLabel(label){
         S.doctorList = res.doctors || res.lista || [];
         S.doctorListLoaded = true;
         buildDoctorSelectForMaster();
-        setupDoctorSearchMaster();
       },
       onFailure:(_)=>{
         S.doctorListLoaded = true;
@@ -4843,11 +4796,8 @@ $("structOrFilter").onchange = setStructOrFilter;
       };
     }
 
-      if($("btnLoadWait")) $("btnLoadWait").onclick = loadWaitlistMaster;
-      if($("wlFilter")) $("wlFilter").onchange = ()=>{ 
-        const vw = $("viewWait");
-        if(vw && !vw.classList.contains("hide")) loadWaitlistMaster(); 
-      };
+    if($("btnLoadWait")) $("btnLoadWait").onclick = loadWaitlistMaster;
+    $("wlFilter").onchange = ()=>{ if(!$("#viewWait").classList.contains("hide")) loadWaitlistMaster(); };
 
     if($("btnSendReport")) $("btnSendReport").onclick = sendReport;
     if($("btnStructVisualReport")) $("btnStructVisualReport").onclick = generateStructVisualReport;
