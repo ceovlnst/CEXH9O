@@ -246,7 +246,6 @@
       100%{transform:scale(.9); opacity:.6}
     }
 
-    /* Modal genérico base */
     .modalBack{
       position:fixed; inset:0; background: rgba(15,23,42,.45);
       display:none; align-items:center; justify-content:center;
@@ -266,10 +265,7 @@
     .modalTitle{font-weight:900;font-size:16px}
     .iconBtn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:6px 10px;cursor:pointer;font-weight:900;line-height:1}
 
-    /* Estilos ligeros para el buscador de cirujanos/equipos */
-    .searchFieldSmall{
-      margin-top:4px;
-    }
+    .searchFieldSmall{margin-top:4px}
     .searchFieldSmall input{
       padding:8px 10px;
       font-size:12px;
@@ -374,7 +370,7 @@
           <div id="msgReserve" class="msg hide"></div>
         </div>
 
-        <!-- USER: MIS RESERVAS -->
+        <!-- USER: MIS RESERVAS (stub) -->
         <div id="viewMine" class="card hide">
           <h2>Mis solicitudes</h2>
 
@@ -437,24 +433,21 @@
                 </div>
               </div>
 
-              <!-- 🔍 Buscador + desplegable de cirujanos / grupo -->
+              <!-- 🔍 Buscador + desplegable de cirujanos (GruposQuirúrgicos) -->
               <div class="row">
                 <div style="flex:1;min-width:220px">
-                  <label>Etiqueta (grupo / médico)</label>
+                  <label>Etiqueta (cirujano)</label>
 
-                  <!-- Campo de búsqueda -->
                   <div class="searchFieldSmall">
                     <input
                       id="stNSLabelSearch"
                       type="text"
-                      placeholder="Buscar por nombre, apellidos o grupo…"
+                      placeholder="Buscar por cirujano, especialidad o email…"
                       oninput="filterStNSLabel()"
                     />
                   </div>
 
-                  <!-- Select real que se envía al GAS -->
                   <select id="stNSLabel"></select>
-
                 </div>
               </div>
 
@@ -466,15 +459,13 @@
               <div id="stNSSlotsBox" class="slots"></div>
               <div id="msgStructNon" class="msg hide"></div>
             </div>
-
-            <!-- Aquí podrías añadir más paneles estructurales si quieres -->
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal genérico reutilizable -->
+  <!-- Modal genérico -->
   <div id="modalBack" class="modalBack">
     <div id="modal" class="modal">
       <div class="modalTop">
@@ -495,7 +486,7 @@
   </div>
 
   <script>
-    // ================== Helpers ==================
+    // ================== Estado ==================
     const S = {
       pin: null,
       doctor: null,
@@ -503,11 +494,10 @@
       role: null,
       nsSlots: [],
       nsSelectedIdx: null,
-      nsLabelOptions: [] // almacenamos todas las opciones para el buscador
+      nsLabelOptions: [] // opciones del desplegable (base para el buscador)
     };
 
     function $(id){ return document.getElementById(id); }
-
     function show(el){ if(el) el.classList.remove("hide"); }
     function hide(el){ if(el) el.classList.add("hide"); }
 
@@ -549,9 +539,7 @@
       $("pillRole").textContent = role || "—";
     }
 
-    function isMaster(){
-      return !!S.isMaster;
-    }
+    function isMaster(){ return !!S.isMaster; }
 
     function setMenuButtons(){
       const bReserve = $("btnGoReserve");
@@ -587,7 +575,7 @@
       }
     }
 
-    // ============== callGAS wrapper =================
+    // Wrap de llamadas a GAS
     function callGAS(fnName, args, opts){
       opts = opts || {};
       const disable = opts.disable || [];
@@ -618,7 +606,6 @@
       }
     }
 
-    // ============== Navegación de vistas ==============
     function go(viewId){
       ["viewReserve","viewMine","viewGrid","viewStruct"].forEach(id=>{
         const el = $(id);
@@ -651,7 +638,7 @@
           if(isMaster()){
             $("gdDate").value = todayISO();
             $("stNSDate").value = todayISO();
-            loadNSLabelOptions(); // cargamos cirujanos/grupos para el desplegable master
+            loadNSLabelOptions(); // cargamos cirujanos de GruposQuirúrgicos
             go("viewStruct");
           }else{
             $("rvDate").value = addDaysISO(1);
@@ -775,10 +762,10 @@
       });
     }
 
-    // ============== MASTER: desplegable con BUSCADOR =============
+    // ============== MASTER: desplegable con BUSCADOR (GruposQuirúrgicos) =============
     /**
-     * Carga los doctores de la hoja "Cirujanos" a través de listDoctorsForMaster
-     * y los vuelca en S.nsLabelOptions y en el <select id="stNSLabel">.
+     * Carga los cirujanos desde la pestaña GruposQuirúrgicos:
+     *  Cirujano | Especialidad | Email | Teléfono | Rol
      */
     function loadNSLabelOptions(){
       if(!isMaster() || !S.pin) return;
@@ -787,20 +774,25 @@
       if(sel) sel.innerHTML = "";
       if(inputSearch) inputSearch.value = "";
 
-      callGAS("listDoctorsForMaster", [S.pin], {
-        msg:"Cargando cirujanos para el desplegable…",
+      // 👉 usamos una función GAS nueva: listSimpleGroupsForMaster(masterPin)
+      callGAS("listSimpleGroupsForMaster", [S.pin], {
+        msg:"Cargando cirujanos (GruposQuirúrgicos)…",
         onSuccess:function(res){
-          const doctors = (res && res.doctors) || [];
-          // Guardamos una lista base para poder filtrar
-          S.nsLabelOptions = doctors.map(function(d){
-            const nombre = (d.nombre || "").trim();
-            const apellidos = (d.apellidos || "").trim();
-            const esp = (d.especialidad || "").trim();
-            const correo = (d.correo || "").trim();
-            const fullName = (nombre + " " + apellidos).trim();
-            const label = fullName + (esp ? " · " + esp : "") + (correo ? " · " + correo : "");
+          const items = (res && res.items) || [];
+          S.nsLabelOptions = items.map(function(row){
+            const cir = (row.cirujano || "").trim();
+            const esp = (row.especialidad || "").trim();
+            const email = (row.email || "").trim();
+            const tel = (row.telefono || "").trim();
+            const rol = (row.rol || "").trim();
+
+            let label = cir;
+            if(esp) label += " · " + esp;
+            if(email) label += " · " + email;
+            if(rol) label += " · " + rol;
+
             return {
-              value: correo,     // lo que mandaremos como etiqueta/identificador
+              value: email || cir,  // valor que usaremos como "label" en el GAS
               label: label
             };
           });
@@ -817,11 +809,12 @@
       const sel = $("stNSLabel");
       if(!sel) return;
       sel.innerHTML = "";
+
       const list = filteredList || S.nsLabelOptions || [];
 
       const optEmpty = document.createElement("option");
       optEmpty.value = "";
-      optEmpty.textContent = "(elige médico / grupo)";
+      optEmpty.textContent = "(elige cirujano)";
       sel.appendChild(optEmpty);
 
       list.forEach(function(item){
@@ -832,7 +825,7 @@
       });
     }
 
-    // 🔍 Filtro del desplegable usando el cuadro de búsqueda
+    // 🔍 filtro en vivo del desplegable
     function filterStNSLabel(){
       const term = ( $("stNSLabelSearch").value || "" ).toLowerCase();
       if(!term){
@@ -845,7 +838,7 @@
       renderStNSLabelSelect(filtered);
     }
 
-    // ============== MASTER: encontrar / asignar CEX NO estructural =========
+    // ============== MASTER: buscar / asignar CEX NO estructural =========
     function masterFindNSSlots(){
       hideMsg($("msgStructNon"));
       const dateStr = $("stNSDate").value;
@@ -853,7 +846,7 @@
       const label = $("stNSLabel").value;
 
       if(!dateStr) return showMsg($("msgStructNon"), "Indica la fecha.", "warn");
-      if(!label) return showMsg($("msgStructNon"), "Elige etiqueta (grupo / médico).", "warn");
+      if(!label) return showMsg($("msgStructNon"), "Elige etiqueta (cirujano).", "warn");
 
       const payload = {
         dateStr: dateStr,
@@ -909,7 +902,7 @@
 
       const label = $("stNSLabel").value;
       if(!label){
-        return showMsg($("msgStructNon"), "Elige etiqueta (grupo / médico).", "warn");
+        return showMsg($("msgStructNon"), "Elige etiqueta (cirujano).", "warn");
       }
 
       const payload = {
@@ -930,15 +923,13 @@
       });
     }
 
-    // ================== Modal básico (por si lo quieres usar luego) =========
+    // ================== Modal (por si lo usas luego) =========
     function openModal(title, html){
       $("modalTitle").textContent = title || "";
       $("modalBody").innerHTML = html || "";
       show($("modalBack"));
     }
-    function closeModal(){
-      hide($("modalBack"));
-    }
+    function closeModal(){ hide($("modalBack")); }
 
     // ================== Wire de eventos ==================
     function wireEvents(){
@@ -961,20 +952,20 @@
 
       if($("modalCloseBtn")) $("modalCloseBtn").onclick = closeModal;
 
-      // enter en PIN => login
       if($("pinInput")){
         $("pinInput").addEventListener("keydown", function(ev){
           if(ev.key === "Enter") login();
         });
       }
 
-      // valores por defecto
       if($("rvDate")) $("rvDate").value = addDaysISO(1);
       if($("stNSDate")) $("stNSDate").value = todayISO();
     }
 
     document.addEventListener("DOMContentLoaded", wireEvents);
-    window.filterStNSLabel = filterStNSLabel; // para el oninput del HTML
+
+    // para el oninput del HTML
+    window.filterStNSLabel = filterStNSLabel;
   </script>
 </body>
 </html>
