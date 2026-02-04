@@ -1435,9 +1435,15 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               <div class="row">
                 <div style="flex:1;min-width:220px">
                   <label>Etiqueta (grupo / médico)</label>
-                  <select id="stNSLabel" /></select>
+                  <input
+                    id="stNSLabel"
+                    list="doctorLabelList"
+                    placeholder="Escribe nombre o iniciales…"
+                    autocomplete="off"
+                  />
                 </div>
               </div>
+
 
               <div class="actions">
                 <button class="btn primary" id="btnNSFindSlots">Buscar huecos</button>
@@ -1469,9 +1475,15 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
                 </div>
                 <div style="flex:1;min-width:240px">
                   <label>Equipo / Servicio (etiqueta)</label>
-                  <select id="stLabel" /></select>
+                  <input
+                    id="stLabel"
+                    list="doctorLabelList"
+                    placeholder="Escribe nombre o iniciales…"
+                    autocomplete="off"
+                  />
                 </div>
               </div>
+
 
               <div class="row">
                 <div style="flex:1;min-width:240px">
@@ -3678,8 +3690,8 @@ function normalizeEquipoKey(value){
 }
 
 function populateSurgeonDropdowns_(groups){
-  // Extrae médicos únicos desde Gruposmédicos.
-  // En el backend, el nombre viene en 'nombre' (que puede proceder de columna Nombre o médico).
+  // Extrae médicos únicos desde GruposQuirúrgicos.
+  // En el backend, el nombre viene en 'nombre' (desde columna Nombre o Cirujano).
   const uniq = new Set();
   (groups||[]).forEach(g=>{
     const n = String((g && (g.nombre || g.médico || "")) || "").trim();
@@ -3687,29 +3699,19 @@ function populateSurgeonDropdowns_(groups){
   });
   const list = Array.from(uniq).sort((a,b)=>a.localeCompare(b,'es'));
 
-  const fill = (selId) => {
-    const el = document.getElementById(selId);
-    if(!el) return;
-    const current = el.value || "";
-    el.innerHTML = "";
-    const opt0 = document.createElement("option");
-    opt0.value = "";
-    opt0.textContent = "(Seleccionar médico)";
-    el.appendChild(opt0);
-    list.forEach(n=>{
-      const op = document.createElement("option");
-      op.value = n;
-      op.textContent = n;
-      el.appendChild(op);
-    });
-    if(current && list.includes(current)) el.value = current;
-  };
+  const dl = document.getElementById("doctorLabelList");
+  if(!dl) return;
 
-  fill("stNSLabel");
-  fill("stLabel");
+  dl.innerHTML = "";
+  list.forEach(n=>{
+    const op = document.createElement("option");
+    op.value = n;      // el valor es el nombre completo del médico
+    dl.appendChild(op);
+  });
+
+  // No tocamos el value de stLabel / stNSLabel para no borrar lo que el usuario esté escribiendo
 }
-
-  function getTeamContactSummary(label){
+function getTeamContactSummary(label){
     const raw = String(label||"").trim();
     if(!raw) return { team:"", contact:"" };
     let team = raw.replace(/^E\b[\s:_-]*/i, "").trim().replace(/\s+/g," ");
@@ -5141,6 +5143,8 @@ function openSwapModal(team, context){
   };
 })();
 </script>
+
+<datalist id="doctorLabelList"></datalist>
 
 </body>
 </html>
