@@ -5176,6 +5176,9 @@ function openSwapModal(team, context){
   }
 
   
+
+
+
 function renderSuggestionsFromStruct(){
     const panel = $("structSuggestions");
     const content = $("structSuggestionsContent");
@@ -5185,17 +5188,9 @@ function renderSuggestionsFromStruct(){
     const baseList = (typeof OR_LIST!=="undefined" && Array.isArray(OR_LIST))
       ? OR_LIST
       : (window.OR_LIST||[]);
-    const CEX_LIST = baseList.filter(n=>String(n).startsWith("CEX "));
-    const total = CEX_LIST.length;
-    const cexSet = new Set(CEX_LIST);
-
-    const days = ["L","M","X","J","V","S","D"];
-    const dayName = {L:"Lunes",M:"Martes",X:"Miércoles",J:"Jueves",V:"Viernes",S:"Sábado",D:"Domingo"};
-
-    const occ = {};
-    days.forEach(d=>occ[d]={morning:new Set(),afternoon:new Set()});
-
+    const allCex = baseList.filter(n=>String(n).startsWith("CEX "));
     const gridMap = window.__lastStructGridMap;
+
     if(!gridMap){
       const p = document.createElement("p");
       p.textContent = "No hay datos del reporte estructural. Genera el reporte primero.";
@@ -5203,56 +5198,218 @@ function renderSuggestionsFromStruct(){
       return;
     }
 
-    // gridMap: loc -> { L:{morning:[],afternoon:[]}, ... }
+    // === Leer filtros ===
+    const selCex = $("fSugCex");
+    const selDay = $("fSugDay");
+    const selTurn = $("fSugTurn");
+    const inpLabel = $("fSugLabel");
+
+    const fCex = selCex ? selCex.value : "";
+    const fDay = selDay ? selDay.value : "";
+    const fTurn = selTurn ? selTurn.value : "both"; // both | morning | afternoon
+    const fLabel = (inpLabel && inpLabel.value) ? inpLabel.value.trim().toLowerCase() : "";
+
+    // Poblamos el combo de consultas la primera vez
+    if(selCex && !selCex.__filled){
+      allCex.forEach(loc=>{
+        const opt = document.createElement("option");
+        opt.value = loc;
+        opt.textContent = loc;
+        selCex.appendChild(opt);
+      });
+      selCex.__filled = true;
+    }
+
+    // Definir días a considerar
+    const allDays = ["L","M","X","J","V","S","D"];
+    const dayName = {L:"Lunes",M:"Martes",X:"Miércoles",J:"Jueves",V:"Viernes",S:"Sábado",D:"Domingo"};
+    const days = fDay ? [fDay] : allDays;
+
+    // Filtrar lista de CEX
+    const CEX_LIST = fCex ? allCex.filter(c=>c===fCex) : allCex;
+    const totalCex = CEX_LIST.length;
+    const cexSet = new Set(CEX_LIST);
+
+    // Función para saber si una celda (array de items) está ocupada según filtro de etiqueta
+    function cellHasMatch(arr){
+      if(!arr || !arr.length) return false;
+      if(!fLabel) return true;
+      const q = fLabel;
+      return arr.some(it=>{
+        const lab = String(it.label||"").toLowerCase();
+        return lab.includes(q);
+      });
+    }
+
+    // =========================
+    // TABLA 1 · POR DÍA
+    // =========================
+    const occByDay = {};
+    days.forEach(d=>occByDay[d]={morning:new Set(),afternoon:new Set()});
+
     gridMap.forEach((byDay, loc)=>{
       if(!cexSet.has(loc)) return;
       days.forEach(d=>{
         const dayObj = byDay[d];
         if(!dayObj) return;
-        ["morning","afternoon"].forEach(sess=>{
-          const arr = dayObj[sess] || [];
-          if(arr && arr.length){
-            occ[d][sess].add(loc);
+        if(fTurn==="both" || fTurn==="morning"){
+          const arrM = dayObj.morning || [];
+          if(cellHasMatch(arrM)){
+            occByDay[d].morning.add(loc);
           }
-        });
+        }
+        if(fTurn==="both" || fTurn==="afternoon"){
+          const arrT = dayObj.afternoon || [];
+          if(cellHasMatch(arrT)){
+            occByDay[d].afternoon.add(loc);
+          }
+        }
       });
     });
 
-    const tbl = document.createElement("table");
-    tbl.className = "summaryTable";
-    tbl.innerHTML = `
-      <thead>
-        <tr>
-          <th>Día</th>
-          <th>M ocupados</th>
-          <th>M libres</th>
-          <th>T ocupados</th>
-          <th>T libres</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-    const tb = tbl.querySelector("tbody");
+    const tblDay = document.createElement("table");
+    tblDay.className = "summaryTable";
+    let headDay = "";
+    if(fTurn==="morning"){
+      headDay = `
+        <thead>
+          <tr>
+            <th>Día</th>
+            <th>M ocupados</th>
+          </tr>
+        </thead>
+      `;
+    }else if(fTurn==="afternoon"){
+      headDay = `
+        <thead>
+          <tr>
+            <th>Día</th>
+            <th>T ocupados</th>
+          </tr>
+        </thead>
+      `;
+    }else{
+      headDay = `
+        <thead>
+          <tr>
+            <th>Día</th>
+            <th>M ocupados</th>
+            <th>T ocupados</th>
+          </tr>
+        </thead>
+      `;
+    }
+    tblDay.innerHTML = headDay + "<tbody></tbody>";
+    const tbDay = tblDay.querySelector("tbody");
 
     days.forEach(d=>{
-      const om = occ[d].morning.size;
-      const ot = occ[d].afternoon.size;
-      const fm = total - om;
-      const ft = total - ot;
+      const om = occByDay[d].morning.size;
+      const ot = occByDay[d].afternoon.size;
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${dayName[d]} (${d})</td>
-        <td>${om} / ${total}</td>
-        <td>${fm}</td>
-        <td>${ot} / ${total}</td>
-        <td>${ft}</td>
-      `;
-      tb.appendChild(tr);
+      if(fTurn==="morning"){
+        tr.innerHTML = `
+          <td>${dayName[d]} (${d})</td>
+          <td>${om} / ${totalCex}</td>
+        `;
+      }else if(fTurn==="afternoon"){
+        tr.innerHTML = `
+          <td>${dayName[d]} (${d})</td>
+          <td>${ot} / ${totalCex}</td>
+        `;
+      }else{
+        tr.innerHTML = `
+          <td>${dayName[d]} (${d})</td>
+          <td>${om} / ${totalCex}</td>
+          <td>${ot} / ${totalCex}</td>
+        `;
+      }
+      tbDay.appendChild(tr);
     });
 
-    content.appendChild(tbl);
-  }
+    content.appendChild(tblDay);
 
+    // =========================
+    // TABLA 2 · POR CONSULTA
+    // =========================
+    const tblCex = document.createElement("table");
+    tblCex.className = "summaryTable";
+    tblCex.style.marginTop = "16px";
+    let headCex = "";
+    if(fTurn==="morning"){
+      headCex = `
+        <thead>
+          <tr>
+            <th>Consulta</th>
+            <th>M ocupados</th>
+          </tr>
+        </thead>
+      `;
+    }else if(fTurn==="afternoon"){
+      headCex = `
+        <thead>
+          <tr>
+            <th>Consulta</th>
+            <th>T ocupados</th>
+          </tr>
+        </thead>
+      `;
+    }else{
+      headCex = `
+        <thead>
+          <tr>
+            <th>Consulta</th>
+            <th>M ocupados</th>
+            <th>T ocupados</th>
+          </tr>
+        </thead>
+      `;
+    }
+    tblCex.innerHTML = headCex + "<tbody></tbody>";
+
+    const tbCex = tblCex.querySelector("tbody");
+    const totalDays = days.length;
+
+    CEX_LIST.forEach(loc=>{
+      const byDay = gridMap.get(loc);
+      let occM = 0;
+      let occT = 0;
+      if(byDay){
+        days.forEach(d=>{
+          const dayObj = byDay[d];
+          if(!dayObj) return;
+          if(fTurn==="both" || fTurn==="morning"){
+            const arrM = dayObj.morning || [];
+            if(cellHasMatch(arrM)) occM++;
+          }
+          if(fTurn==="both" || fTurn==="afternoon"){
+            const arrT = dayObj.afternoon || [];
+            if(cellHasMatch(arrT)) occT++;
+          }
+        });
+      }
+      const tr = document.createElement("tr");
+      if(fTurn==="morning"){
+        tr.innerHTML = `
+          <td>${loc}</td>
+          <td>${occM} / ${totalDays}</td>
+        `;
+      }else if(fTurn==="afternoon"){
+        tr.innerHTML = `
+          <td>${loc}</td>
+          <td>${occT} / ${totalDays}</td>
+        `;
+      }else{
+        tr.innerHTML = `
+          <td>${loc}</td>
+          <td>${occM} / ${totalDays}</td>
+          <td>${occT} / ${totalDays}</td>
+        `;
+      }
+      tbCex.appendChild(tr);
+    });
+
+    content.appendChild(tblCex);
+  }
 // Hook al botón existente "Calcular sugerencias"
   document.addEventListener("click", function(e){
     const btn = e.target.closest("#btnCalcularSugerencias");
@@ -5278,7 +5435,44 @@ function renderSuggestionsFromStruct(){
 
 <!-- Panel oculto de sugerencias -->
 <div id="structSuggestions" class="structPanel hide">
-  <h3>Resumen de huecos por día y turno</h3>
+  <div class="rhead">
+    <h3 style="margin:0">Sugerencias / análisis de huecos</h3>
+  </div>
+
+  <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <div>
+      <label for="fSugCex">Consulta</label>
+      <select id="fSugCex">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div>
+      <label for="fSugLabel">Equipo / etiqueta</label>
+      <input id="fSugLabel" type="text" placeholder="Todas" />
+    </div>
+    <div>
+      <label for="fSugDay">Día de la semana</label>
+      <select id="fSugDay">
+        <option value="">Todos</option>
+        <option value="L">Lunes</option>
+        <option value="M">Martes</option>
+        <option value="X">Miércoles</option>
+        <option value="J">Jueves</option>
+        <option value="V">Viernes</option>
+        <option value="S">Sábado</option>
+        <option value="D">Domingo</option>
+      </select>
+    </div>
+    <div>
+      <label for="fSugTurn">Turno</label>
+      <select id="fSugTurn">
+        <option value="both">Mañana y tarde</option>
+        <option value="morning">Solo mañana</option>
+        <option value="afternoon">Solo tarde</option>
+      </select>
+    </div>
+  </div>
+
   <div id="structSuggestionsContent"></div>
 </div>
 
