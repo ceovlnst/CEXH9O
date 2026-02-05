@@ -5179,6 +5179,7 @@ function openSwapModal(team, context){
 
 
 
+
 function renderSuggestionsFromStruct(){
     const panel = $("structSuggestions");
     const content = $("structSuggestionsContent");
@@ -5221,9 +5222,14 @@ function renderSuggestionsFromStruct(){
     }
 
     // Definir días a considerar
-    const allDays = ["L","M","X","J","V","S","D"];
+    const WEEK_DAYS = ["L","M","X","J","V"];
+    const EXTRA_DAYS = ["S","D"];
+    const allDays = WEEK_DAYS.concat(EXTRA_DAYS);
     const dayName = {L:"Lunes",M:"Martes",X:"Miércoles",J:"Jueves",V:"Viernes",S:"Sábado",D:"Domingo"};
-    const days = fDay ? [fDay] : allDays;
+
+    // Si hay filtro de día, usamos solo ese (sea laborable o fin de semana).
+    // Si no hay filtro, SOLO contamos de lunes a viernes.
+    const days = fDay ? [fDay] : WEEK_DAYS.slice();
 
     // Filtrar lista de CEX
     const CEX_LIST = fCex ? allCex.filter(c=>c===fCex) : allCex;
@@ -5367,7 +5373,7 @@ function renderSuggestionsFromStruct(){
     tblCex.innerHTML = headCex + "<tbody></tbody>";
 
     const tbCex = tblCex.querySelector("tbody");
-    const totalDays = days.length;
+    const totalDays = days.length; // ahora, por defecto, 5 (L-V)
 
     CEX_LIST.forEach(loc=>{
       const byDay = gridMap.get(loc);
