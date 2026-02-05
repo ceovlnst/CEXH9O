@@ -5180,6 +5180,8 @@ function openSwapModal(team, context){
 
 
 
+
+
 function renderSuggestionsFromStruct(){
     const panel = $("structSuggestions");
     const content = $("structSuggestionsContent");
@@ -5332,14 +5334,21 @@ function renderSuggestionsFromStruct(){
       tbDay.appendChild(tr);
     });
 
-    content.appendChild(tblDay);
+    // Envolvemos en <details> contraído
+    const secDay = document.createElement("details");
+    secDay.open = false;
+    const sumDay = document.createElement("summary");
+    sumDay.textContent = "Resumen por día (L-V)";
+    secDay.appendChild(sumDay);
+    secDay.appendChild(tblDay);
+    content.appendChild(secDay);
 
     // =========================
     // TABLA 2 · POR CONSULTA
     // =========================
     const tblCex = document.createElement("table");
     tblCex.className = "summaryTable";
-    tblCex.style.marginTop = "16px";
+    tblCex.style.marginTop = "8px";
     let headCex = "";
     if(fTurn==="morning"){
       headCex = `
@@ -5373,7 +5382,7 @@ function renderSuggestionsFromStruct(){
     tblCex.innerHTML = headCex + "<tbody></tbody>";
 
     const tbCex = tblCex.querySelector("tbody");
-    const totalDays = days.length; // ahora, por defecto, 5 (L-V)
+    const totalDays = days.length; // por defecto, 5 (L-V)
 
     CEX_LIST.forEach(loc=>{
       const byDay = gridMap.get(loc);
@@ -5414,7 +5423,290 @@ function renderSuggestionsFromStruct(){
       tbCex.appendChild(tr);
     });
 
-    content.appendChild(tblCex);
+    const secCex = document.createElement("details");
+    secCex.open = false;
+    const sumCex = document.createElement("summary");
+    sumCex.textContent = "Resumen por consulta (CEX)";
+    secCex.appendChild(sumCex);
+    secCex.appendChild(tblCex);
+    content.appendChild(secCex);
+
+    
+// =========================
+    // PROPUESTAS DE MOVIMIENTO
+    // =========================
+
+    const WEEK_ORDER = ["L","M","X","J","V"];
+    const dayNameShort = {L:"L",M:"M",X:"X",J:"J",V:"V"};
+    const turnName = {morning:"mañana",afternoon:"tarde"};
+
+    function hasAnyOccupancy(loc, day, turn){
+      const byDay = gridMap.get(loc);
+      if(!byDay) return false;
+      const dObj = byDay[day];
+      if(!dObj) return false;
+      const arr = dObj[turn] || [];
+      return arr.length>0;
+    }
+
+    // =====================================================
+    // 1) PROPUESTAS "PREMIUM": UNIFICAR CONSULTA COMPLETA
+    // =====================================================
+    const movesPanel = document.createElement("div");
+    movesPanel.className = "structMovesPanel";
+    movesPanel.style.marginTop = "16px";
+
+    const h = document.createElement("h4");
+    h.textContent = "Propuestas de compactación global (unificar consultas y liberar espacios)";
+    movesPanel.appendChild(h);
+
+    const list = document.createElement("div");
+    list.className = "movesList";
+    movesPanel.appendChild(list);
+
+    const MAX_SUG = 500;
+    const suggestions = [];
+    const fullKeys = new Set();
+
+    // Agrupamos SIEMPRE por equipo (label) y turno, ignorando filtros.
+    const byLabelTurnFull = new Map(); // key: label|turn
+
+    gridMap.forEach((byDay, loc)=>{
+      WEEK_ORDER.forEach(d=>{
+        const dayObj = byDay[d];
+        if(!dayObj) return;
+        ["morning","afternoon"].forEach(turn=>{
+          const arr = dayObj[turn] || [];
+          if(!arr.length) return;
+          arr.forEach(it=>{
+            let label = (it.label || "").trim();
+            if(!label) return;
+            const key = label+"|"+turn;
+            if(!byLabelTurnFull.has(key)){
+              byLabelTurnFull.set(key, {label,turn,occByLoc:new Map()});
+            }
+            const info = byLabelTurnFull.get(key);
+            if(!info.occByLoc.has(loc)){
+              info.occByLoc.set(loc,{loc,days:new Set()});
+            }
+            info.occByLoc.get(loc).days.add(d);
+          });
+        });
+      });
+    });
+
+    byLabelTurnFull.forEach(info=>{
+      const label = info.label;
+      const turn = info.turn;
+      const occArr = Array.from(info.occByLoc.values()); // {loc, days:Set}
+
+      if(occArr.length <= 1) return; // ya está en una sola consulta
+
+      // Ordenamos por nº de días descendente para elegir mejor destino
+      occArr.sort((a,b)=> b.days.size - a.days.size);
+      const dest = occArr[0]; // consulta "principal" actual
+
+      // Intentamos unificar otras consultas de este equipo+turno en la de destino
+      for(let i=1; i<occArr.length && suggestions.length<MAX_SUG; i++){
+        const src = occArr[i];
+        if(!src.days.size) continue;
+
+        const srcDaysOriginal = Array.from(src.days);
+        let canMerge = true;
+
+        for(const d of srcDaysOriginal){
+          // No podemos unificar si la consulta destino ya tiene ese día
+          if(dest.days.has(d)){
+            canMerge = false;
+            break;
+          }
+          // O si la consulta destino está ocupada por cualquier equipo ese día/turno
+          if(hasAnyOccupancy(dest.loc, d, turn)){
+            canMerge = false;
+            break;
+          }
+        }
+
+        if(!canMerge) continue;
+
+        const srcBefore = src.days.size;
+        const destBefore = dest.days.size;
+
+        const key = label+"|"+turn+"|"+src.loc+"|"+dest.loc;
+        fullKeys.add(key);
+
+        // Registramos sugerencia de mover TODOS los días de src a dest
+        suggestions.push({
+          label,
+          turn,
+          fromLoc: src.loc,
+          toLoc: dest.loc,
+          days: srcDaysOriginal.slice(),
+          impact: {
+            srcDaysBefore: srcBefore,
+            dstDaysBefore: destBefore
+          }
+        });
+
+        // Simulamos la unificación para no proponer movimientos redundantes
+        src.days.clear();
+        srcDaysOriginal.forEach(d=> dest.days.add(d));
+      }
+    });
+
+    if(!suggestions.length){
+      const p = document.createElement("p");
+      p.textContent = "No se han detectado movimientos claros de unificación de consultas con la configuración actual.";
+      list.appendChild(p);
+    }else{
+      suggestions.forEach(s=>{
+        const row = document.createElement("div");
+        row.className = "moveItem";
+
+        const tLabel = turnName[s.turn] || s.turn;
+        const daysText = s.days
+          .slice()
+          .sort((a,b)=> WEEK_ORDER.indexOf(a)-WEEK_ORDER.indexOf(b))
+          .map(d=>dayNameShort[d]||d)
+          .join(", ");
+
+        row.innerHTML = `
+          <div class="moveMain">
+            <strong>${s.label}</strong> · ${tLabel}
+          </div>
+          <div class="moveBody">
+            Unificar agenda trasladando <code>${s.fromLoc}</code> (${daysText})
+            → <code>${s.toLoc}</code>
+          </div>
+          <div class="moveImpact">
+            Impacto: ${s.fromLoc} pasa de ${s.impact.srcDaysBefore} a 0 días;
+            ${s.toLoc} pasa de ${s.impact.dstDaysBefore} a ${s.impact.dstDaysBefore + s.days.length} días.
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    content.appendChild(movesPanel);
+
+    // =====================================================
+    // 2) PROPUESTAS PARCIALES: COMPACTAR SIN LIBERAR DEL TODO
+    // =====================================================
+    const movesPanel2 = document.createElement("div");
+    movesPanel2.className = "structMovesPanel";
+    movesPanel2.style.marginTop = "16px";
+
+    const h2 = document.createElement("h4");
+    h2.textContent = "Otras propuestas de ajuste parcial (compactar sin liberar completamente)";
+    movesPanel2.appendChild(h2);
+
+    const list2 = document.createElement("div");
+    list2.className = "movesList";
+    movesPanel2.appendChild(list2);
+
+    const MAX_PARTIAL = 500;
+    const partialSuggestions = [];
+
+    const byLabelTurnPartial = new Map();
+
+    gridMap.forEach((byDay, loc)=>{
+      WEEK_ORDER.forEach(d=>{
+        const dayObj = byDay[d];
+        if(!dayObj) return;
+        ["morning","afternoon"].forEach(turn=>{
+          const arr = dayObj[turn] || [];
+          if(!arr.length) return;
+          arr.forEach(it=>{
+            let label = (it.label || "").trim();
+            if(!label) return;
+            const key = label+"|"+turn;
+            if(!byLabelTurnPartial.has(key)){
+              byLabelTurnPartial.set(key, {label,turn,occByLoc:new Map()});
+            }
+            const info = byLabelTurnPartial.get(key);
+            if(!info.occByLoc.has(loc)){
+              info.occByLoc.set(loc,{loc,days:new Set()});
+            }
+            info.occByLoc.get(loc).days.add(d);
+          });
+        });
+      });
+    });
+
+    byLabelTurnPartial.forEach(info=>{
+      const label = info.label;
+      const turn = info.turn;
+      const occArr = Array.from(info.occByLoc.values());
+      if(occArr.length <= 1) return;
+
+      for(let i=0; i<occArr.length && partialSuggestions.length<MAX_PARTIAL; i++){
+        const src = occArr[i];
+        const srcDays = Array.from(src.days);
+        if(!srcDays.length) continue;
+
+        for(let j=0; j<occArr.length && partialSuggestions.length<MAX_PARTIAL; j++){
+          if(i===j) continue;
+          const dst = occArr[j];
+
+          const movableDays = [];
+          srcDays.forEach(d=>{
+            if(dst.days.has(d)) return;
+            if(hasAnyOccupancy(dst.loc, d, turn)) return;
+            movableDays.push(d);
+          });
+
+          if(!movableDays.length) continue;
+
+          const keyFull = label+"|"+turn+"|"+src.loc+"|"+dst.loc;
+          // Si todos los días son movibles y ya existe propuesta "premium", no repetirla aquí
+          if(movableDays.length === srcDays.length && fullKeys.has(keyFull)){
+            continue;
+          }
+
+          partialSuggestions.push({
+            label,
+            turn,
+            fromLoc: src.loc,
+            toLoc: dst.loc,
+            days: movableDays.slice()
+          });
+        }
+      }
+    });
+
+    if(!partialSuggestions.length){
+      const p2 = document.createElement("p");
+      p2.textContent = "No se han encontrado ajustes parciales adicionales más allá de las unificaciones completas.";
+      list2.appendChild(p2);
+    }else{
+      partialSuggestions.forEach(s=>{
+        const row = document.createElement("div");
+        row.className = "moveItem";
+
+        const tLabel = turnName[s.turn] || s.turn;
+        const daysText = s.days
+          .slice()
+          .sort((a,b)=> WEEK_ORDER.indexOf(a)-WEEK_ORDER.indexOf(b))
+          .map(d=>dayNameShort[d]||d)
+          .join(", ");
+
+        row.innerHTML = `
+          <div class="moveMain">
+            <strong>${s.label}</strong> · ${tLabel}
+          </div>
+          <div class="moveBody">
+            Mover sesiones sueltas de <code>${s.fromLoc}</code> (${daysText})
+            → <code>${s.toLoc}</code>
+          </div>
+          <div class="moveImpact">
+            Impacto: se compacta la agenda en ${s.toLoc} esos días sin liberar completamente ${s.fromLoc}.
+          </div>
+        `;
+        list2.appendChild(row);
+      });
+    }
+
+    content.appendChild(movesPanel2);
   }
 // Hook al botón existente "Calcular sugerencias"
   document.addEventListener("click", function(e){
@@ -5454,7 +5746,12 @@ function renderSuggestionsFromStruct(){
     </div>
     <div>
       <label for="fSugLabel">Equipo / etiqueta</label>
-      <input id="fSugLabel" type="text" placeholder="Todas" />
+      <input
+        id="fSugLabel"
+        list="doctorLabelList"
+        placeholder="Escribe nombre o iniciales…"
+        autocomplete="off"
+      />
     </div>
     <div>
       <label for="fSugDay">Día de la semana</label>
