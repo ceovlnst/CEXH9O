@@ -5146,5 +5146,121 @@ function openSwapModal(team, context){
 
 <datalist id="doctorLabelList"></datalist>
 
+
+<!-- ===== SUGERENCIAS POR DIA Y TURNO (ON DEMAND) ===== -->
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  function normalizeDayKey(d){
+    const m = {L:"L",M:"M",X:"X",J:"J",V:"V",S:"S",D:"D",
+               lunes:"L",martes:"M",miercoles:"X",miércoles:"X",
+               jueves:"J",viernes:"V",sabado:"S",sábado:"S",domingo:"D"};
+    if(!d) return "L";
+    const k = String(d).toLowerCase();
+    return m[k] || d;
+  }
+  function normalizeSessionKey(s){
+    if(!s) return "morning";
+    const v = String(s).toLowerCase();
+    if(v==="t"||v.includes("tar")) return "afternoon";
+    if(v==="m"||v.includes("man")) return "morning";
+    if(v==="mixed") return "mixed";
+    return "morning";
+  }
+
+  function renderSuggestionsFromStruct(rows){
+    const panel = $("structSuggestions");
+    const content = $("structSuggestionsContent");
+    panel.classList.remove("hide");
+    content.innerHTML = "";
+
+    const CEX_LIST = (window.OR_LIST||[]).filter(n=>String(n).startsWith("CEX "));
+    const total = CEX_LIST.length;
+    const cexSet = new Set(CEX_LIST);
+
+    const days = ["L","M","X","J","V","S","D"];
+    const dayName = {L:"Lunes",M:"Martes",X:"Miércoles",J:"Jueves",V:"Viernes",S:"Sábado",D:"Domingo"};
+
+    const occ = {};
+    days.forEach(d=>occ[d]={morning:new Set(),afternoon:new Set()});
+
+    rows.forEach(r=>{
+      const orName = String(r.orName||r.location||"").trim();
+      if(!cexSet.has(orName)) return;
+      const d = normalizeDayKey(r.day);
+      const sk = normalizeSessionKey(r.session);
+      if(sk==="mixed"){
+        occ[d].morning.add(orName);
+        occ[d].afternoon.add(orName);
+      }else{
+        occ[d][sk].add(orName);
+      }
+    });
+
+    const tbl = document.createElement("table");
+    tbl.className = "summaryTable";
+    tbl.innerHTML = `
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>M ocupados</th>
+          <th>M libres</th>
+          <th>T ocupados</th>
+          <th>T libres</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tb = tbl.querySelector("tbody");
+
+    days.forEach(d=>{
+      const om = occ[d].morning.size;
+      const ot = occ[d].afternoon.size;
+      const fm = total - om;
+      const ft = total - ot;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${dayName[d]} (${d})</td>
+        <td>${om} / ${total}</td>
+        <td>${fm}</td>
+        <td>${ot} / ${total}</td>
+        <td>${ft}</td>
+      `;
+      tb.appendChild(tr);
+    });
+
+    content.appendChild(tbl);
+  }
+
+  // Hook al botón existente "Calcular sugerencias"
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest("#btnCalcSuggestions");
+    if(!btn) return;
+    if(!window.__lastStructRows){
+      alert("Primero genera el reporte estructural.");
+      return;
+    }
+    renderSuggestionsFromStruct(window.__lastStructRows);
+  });
+
+  // Capturamos las filas del reporte estructural cuando se renderiza
+  const _norm = window.normalizeStructReportRows;
+  if(typeof _norm === "function"){
+    window.normalizeStructReportRows = function(data){
+      const rows = _norm.apply(this, arguments);
+      window.__lastStructRows = rows;
+      return rows;
+    }
+  }
+})();
+</script>
+
+<!-- Panel oculto de sugerencias -->
+<div id="structSuggestions" class="structPanel hide">
+  <h3>Resumen de huecos por día y turno</h3>
+  <div id="structSuggestionsContent"></div>
+</div>
+
 </body>
 </html>
