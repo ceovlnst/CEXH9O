@@ -1635,7 +1635,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           <div class="row">
             <div style="flex:1;min-width:260px">
               <label>Email destino</label>
-              <input id="rpEmail" placeholder="destino@." />
+              <input id="rpEmail" placeholder="destino@..." />
             </div>
           </div>
           <div class="row">
@@ -1651,10 +1651,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           <div class="actions">
             <button class="btn primary" id="btnSendReport">Enviar reporte (Dirección)</button>
           </div>
-          <div class="hint">
-            Incluye visión global y desglosa <b>Programado</b>, <b>Especiales (Híbrido)</b> y <b>Urgencias/24h</b>.
-            Métrica: <b>horas reales</b> (no número de eventos).
-          </div>
+          <div class="hint">Incluye visión global y desglosa <b>Programado</b>, <b>Especiales (Híbrido)</b> y <b>Urgencias/24h</b>. Métrica: <b>horas reales</b> (no número de eventos).</div>
           <div id="msgReport" class="msg hide"></div>
 
           <div class="hr"></div>
@@ -1665,88 +1662,12 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               <button class="btn small primary" id="btnStructVisualReport">Generar / actualizar</button>
             </div>
           </div>
-          <div class="hint">
-            Distribución de CEXs estructurales por <b>día</b>, <b>CEX</b> y <b>sesión</b> (mañana/tarde).
-          </div>
+          <div class="hint">Distribución de CEXs estructurales por <b>día</b>, <b>CEX</b> y <b>sesión</b> (mañana/tarde).</div>
           <div id="structVisualReport" class="reportGrid hide"></div>
-
-          <div class="hr"></div>
-
-          <!-- NUEVO: Sugerencias de unificación -->
-          <div class="rhead">
-            <h3 style="margin:0">Sugerencias de unificación estructural</h3>
-            <div class="actions" style="margin-top:0">
-              <button class="btn small" id="btnSuggestUnif">Calcular sugerencias</button>
-            </div>
-          </div>
-          <div class="hint">
-            Detecta patrones cruzados entre consultas (por ejemplo, lunes/martes mañana/tarde para el mismo equipo)
-            que podrían permitir concentrar la actividad en una sola CEX. Es una ayuda para revisar, no aplica cambios.
-          </div>
-          <div id="unifSuggestBox" class="reportGrid hide"></div>
-
-          <div class="hr"></div>
-
-          <!-- NUEVO: Buscar huecos tipo “estructural” en CEX -->
-          <div class="rhead">
-            <h3 style="margin:0">Buscar huecos estructurales en CEX</h3>
-          </div>
-          <div class="hint">
-            Define el patrón estructural que buscas (días y horas) y se buscan consultas donde ese bloque
-            quepa completo sin solaparse con la estructura actual (NO tiene en cuenta CEX NO estructurales).
-          </div>
-
-          <div class="formGrid" style="margin-top:8px">
-            <div class="field">
-              <label>Días de la semana</label>
-              <div class="weekPick">
-                <label class="wchip"><input type="checkbox" class="cxGapDay" value="MONDAY"><b>L</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapDay" value="TUESDAY"><b>M</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapDay" value="WEDNESDAY"><b>X</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapDay" value="THURSDAY"><b>J</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapDay" value="FRIDAY"><b>V</b></label>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Hora inicio</label>
-              <input id="gapStartHour" type="number" min="7" max="21" step="1" placeholder="Ej: 9" />
-            </div>
-
-            <div class="field">
-              <label>Duración (h)</label>
-              <input id="gapDuration" type="number" min="1" max="12" step="1" placeholder="Ej: 4" />
-            </div>
-
-            <div class="field">
-              <label>Cadencia</label>
-              <select id="gapCadence">
-                <option value="WEEKLY">Semanal</option>
-                <option value="MONTH_WEEKS">Semanas del mes</option>
-              </select>
-            </div>
-
-            <div class="field" id="gapWeeksField" style="display:none">
-              <label>Semanas del mes</label>
-              <div class="weekPick">
-                <label class="wchip"><input type="checkbox" class="cxGapWeek" value="1"><b>1ª</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapWeek" value="2"><b>2ª</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapWeek" value="3"><b>3ª</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapWeek" value="4"><b>4ª</b></label>
-                <label class="wchip"><input type="checkbox" class="cxGapWeek" value="5"><b>5ª</b></label>
-              </div>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn small primary" id="btnFindCexGap">Buscar CEX disponible</button>
-          </div>
-
-          <div id="gapResultBox" class="reportGrid hide"></div>
         </div>
 
 
-        <!-- MASTER: EQUIPOS médicos -->        <!-- MASTER: EQUIPOS médicos -->
+        <!-- MASTER: EQUIPOS médicos -->
         <div id="viewGroups" class="hide">
           <div class="row" style="justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
             <div>
@@ -4882,16 +4803,6 @@ $("structOrFilter").onchange = setStructOrFilter;
 
     if($("btnSendReport")) $("btnSendReport").onclick = sendReport;
     if($("btnStructVisualReport")) $("btnStructVisualReport").onclick = generateStructVisualReport;
-    if($("btnSuggestUnif")) $("btnSuggestUnif").onclick = suggestUnifications;
-    if($("btnFindCexGap")) $("btnFindCexGap").onclick = findCexGap;
-    if($("gapCadence")) {
-      $("gapCadence").addEventListener("change", function(){
-        const f = $("gapWeeksField");
-        if(!f) return;
-        if(this.value === "MONTH_WEEKS") f.style.display = "";
-        else f.style.display = "none";
-      });
-    }
 
     if($("btnModalClose")) $("btnModalClose").onclick = closeModal;
     if($("btnModalApply")) $("btnModalApply").onclick = applyModalChanges;
@@ -5231,223 +5142,6 @@ function openSwapModal(team, context){
     setTimeout(()=>{ try{ $("agEquipo").focus(); }catch(e){} }, 30);
   };
 })();
-
-  // ===== SUGERENCIAS DE UNIFICACIÓN (MASTER) =====
-  function suggestUnifications(){
-    hideMsg($("msgReport"));
-    const box = $("unifSuggestBox");
-    if(!box) return;
-    box.classList.remove("hide");
-    box.innerHTML = "";
-
-    callGAS("suggestStructuralUnifications", [S.pin], {
-      key:"unif",
-      msg:"Analizando estructura para sugerencias…",
-      onSuccess:(res)=>{
-        try{
-          renderUnifSuggestions(res && (res.data || res));
-        }catch(err){
-          console.error(err);
-          showMsg($("msgReport"), "Error generando sugerencias: " + (err?.message || String(err)), "bad");
-        }
-      },
-      onFailure:(e)=>{
-        console.error(e);
-        showMsg($("msgReport"), e?.message || String(e), "bad");
-      }
-    });
-  }
-
-  function renderUnifSuggestions(data){
-    const box = $("unifSuggestBox");
-    if(!box) return;
-    box.classList.remove("hide");
-    box.innerHTML = "";
-
-    const list = (data && (data.suggestions || data.lista || data.rows)) || [];
-    if(!list.length){
-      box.innerHTML = `<div style="padding:8px;font-size:13px">
-        No se han detectado patrones cruzados claros. Revisa la estructura manualmente si sospechas alguna unificación posible.
-      </div>`;
-      return;
-    }
-
-    let html = `
-      <div style="max-height:280px;overflow:auto">
-        <table class="structReportTable">
-          <thead>
-            <tr>
-              <th>Equipo / etiqueta</th>
-              <th>Consulta A</th>
-              <th>Consulta B</th>
-              <th>Patrón</th>
-              <th>Comentario</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    html += list.map(it=>{
-      const label = escapeHtml(it.label || "");
-      const orA  = escapeHtml(it.orA || it.or1 || "");
-      const orB  = escapeHtml(it.orB || it.or2 || "");
-      const d1   = escapeHtml(it.day1Short || it.day1 || "");
-      const d2   = escapeHtml(it.day2Short || it.day2 || "");
-      const sA1  = escapeHtml(it.sessA1 || it.sess1 || "");
-      const sA2  = escapeHtml(it.sessA2 || it.sess2 || "");
-      const sB1  = escapeHtml(it.sessB1 || it.sessB || "");
-      const sB2  = escapeHtml(it.sessB2 || it.sessB_alt || "");
-      const comment = escapeHtml(it.comment || "Patrón cruzado que podría permitir concentrar en una única consulta revisando la serie.");
-
-      function shortSess(s){
-        const v = s.toLowerCase();
-        if(v.includes("mañana") || v === "morning") return "Mañana";
-        if(v.includes("tarde")  || v === "afternoon") return "Tarde";
-        return s;
-      }
-
-      const patt = `${d1} ${shortSess(sA1)} / ${shortSess(sB1)} – ${d2} ${shortSess(sA2)} / ${shortSess(sB2)}`;
-
-      return `
-        <tr>
-          <td>${label}</td>
-          <td>${orA}</td>
-          <td>${orB}</td>
-          <td>${patt}</td>
-          <td>${comment}</td>
-        </tr>
-      `;
-    }).join("");
-
-    html += "</tbody></table></div>";
-    box.innerHTML = html;
-  }
-
-  // ===== BUSCAR HUECOS ESTRUCTURALES EN CEX =====
-  function findCexGap(){
-    hideMsg($("msgReport"));
-    const box = $("gapResultBox");
-    if(!box) return;
-    box.classList.remove("hide");
-    box.innerHTML = "";
-
-    const days = Array.from(document.querySelectorAll(".cxGapDay:checked")).map(cb=>cb.value);
-    const startHour = Number($("gapStartHour").value || "");
-    const duration  = Number($("gapDuration").value || "");
-    const cadenceEl = $("gapCadence");
-    const cadence   = (cadenceEl ? cadenceEl.value : "WEEKLY").toUpperCase();
-
-    if(!days.length){
-      return showMsg($("msgReport"), "Selecciona al menos un día.", "warn");
-    }
-    if(!Number.isFinite(startHour) || !Number.isFinite(duration) || duration <= 0){
-      return showMsg($("msgReport"), "Indica hora de inicio y duración válidas.", "warn");
-    }
-
-    const payload = {
-      cadenceMode: cadence,
-      weekdays: days,
-      startHour: startHour,
-      durationHours: duration
-    };
-
-    if(cadence === "MONTH_WEEKS"){
-      const weeks = Array.from(document.querySelectorAll(".cxGapWeek:checked")).map(cb=>Number(cb.value));
-      if(!weeks.length){
-        return showMsg($("msgReport"), "Selecciona al menos una semana del mes.", "warn");
-      }
-      payload.monthWeeks = weeks;
-    }
-
-    callGAS("masterFindCexGap", [S.pin, payload], {
-      key:"gap",
-      msg:"Buscando consultas donde quepa el patrón…",
-      onSuccess:(res)=>{
-        try{
-          renderCexGapResult(res && (res.data || res), payload);
-        }catch(err){
-          console.error(err);
-          showMsg($("msgReport"), "Error procesando el resultado: " + (err?.message || String(err)), "bad");
-        }
-      },
-      onFailure:(e)=>{
-        console.error(e);
-        showMsg($("msgReport"), e?.message || String(e), "bad");
-      }
-    });
-  }
-
-  function renderCexGapResult(data, query){
-    const box = $("gapResultBox");
-    if(!box) return;
-    box.classList.remove("hide");
-    box.innerHTML = "";
-
-    const matches = (data && (data.matches || data.lista)) || [];
-    const msg = data && (data.message || data.msg) || "";
-
-    const weekdays = (query && query.weekdays) || (data && data.query && data.query.weekdays) || [];
-    const startHour = (query && query.startHour) || (data && data.query && data.query.startHour);
-    const duration  = (query && query.durationHours) || (data && data.query && data.query.durationHours);
-    const monthWeeks = (query && query.monthWeeks) || (data && data.query && data.query.monthWeeks) || null;
-
-    function dayShortToEs(k){
-      const m = {
-        MONDAY:"Lunes",
-        TUESDAY:"Martes",
-        WEDNESDAY:"Miércoles",
-        THURSDAY:"Jueves",
-        FRIDAY:"Viernes",
-        SATURDAY:"Sábado",
-        SUNDAY:"Domingo"
-      };
-      return m[k] || k;
-    }
-
-    let extraWeeks = "";
-    if(Array.isArray(monthWeeks) && monthWeeks.length){
-      extraWeeks = " (semanas: " + monthWeeks.join(", ") + "ª)";
-    }
-
-    const desc = `
-      <div style="margin-bottom:6px;font-size:13px">
-        Patrón buscado: 
-        <b>${weekdays.map(d=>dayShortToEs(d)).join(", ")}</b>, 
-        de <b>${String(startHour).padStart(2,"0")}:00</b> a 
-        <b>${String(startHour + duration).padStart(2,"0")}:00</b>${extraWeeks}.
-      </div>
-    `;
-
-    if(!matches.length){
-      box.innerHTML = desc + `<div style="padding:8px;font-size:13px">${escapeHtml(msg || "No se han encontrado consultas libres para este patrón.")}</div>`;
-      return;
-    }
-
-    let html = desc + `
-      <div style="max-height:220px;overflow:auto">
-        <table class="structReportTable">
-          <thead>
-            <tr>
-              <th>CEX disponible</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    html += matches.map(m=>{
-      return `<tr><td>${escapeHtml(m.orName || m.location || "")}</td></tr>`;
-    }).join("");
-
-    html += "</tbody></table></div>";
-
-    if(msg){
-      html += `<div class="hint" style="margin-top:6px">${escapeHtml(msg)}</div>`;
-    }
-
-    box.innerHTML = html;
-  }
-
-
 </script>
 
 <datalist id="doctorLabelList"></datalist>
