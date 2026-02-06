@@ -1133,20 +1133,10 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   overflow:auto;
 }
 
-.structReportFullscreenZoomBar{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:8px;
-  padding:4px 12px 0;
-}
-
-.structReportFullscreenZoomBar input[type=range]{
-  width:140px;
-}
-
+/* Contenedor del grid en pantalla completa; lo usamos para aplicar un ajuste automático al ancho */
 .structReportFullscreenContent{
   transform-origin: top left;
+  width: 100%;
 }
 
 /* En modo pantalla completa permitimos que la tabla crezca sin límite de alto */
@@ -4332,7 +4322,7 @@ function groupInfoHtmlForLabel(label){
   function generateStructVisualReport(){
     hideMsg($("msgReport"));
     const box = $("structVisualReport");
-    box.classList.remove("hide");
+    // Mantenemos el contenedor oculto; solo lo usamos como fuente para la vista de pantalla completa
     box.innerHTML = "";
 
     callGAS("getStructuralProgramReport", [S.pin], {
@@ -4340,13 +4330,18 @@ function groupInfoHtmlForLabel(label){
       msg:"Generando reporte visual…",
       onSuccess:(res)=>{
         try{
-          // Renderiza el reporte estructural visual
+          // Renderiza el reporte estructural visual (actualiza el DOM oculto y el gridMap)
           renderStructVisualReport(res);
 
           // Después de generar el reporte, disparamos también la acción de "Calcular sugerencias"
           const sugBtn = $("btnCalcularSugerencias");
           if (sugBtn) {
             sugBtn.click();
+          }
+
+          // Abrimos directamente la vista de pantalla completa con el grid recién generado
+          if (typeof openStructVisualFullscreen === "function") {
+            openStructVisualFullscreen();
           }
         }catch(err){
           console.error(err);
@@ -4362,7 +4357,7 @@ function groupInfoHtmlForLabel(label){
 
   function renderStructVisualReport(data){
     const box = $("structVisualReport");
-    box.classList.remove("hide");
+    // Mantiene el contenedor oculto; solo se usa como fuente para fullscreen
     box.innerHTML = "";
 
     const rows = normalizeStructReportRows(data);
@@ -5890,7 +5885,8 @@ function renderSuggestionsFromStruct(){
 
   function openStructVisualFullscreen(){
     const box = $("structVisualReport");
-    if(!box || box.classList.contains("hide") || !box.innerHTML.trim()){
+    // Permitimos que el contenedor permanezca oculto: solo comprobamos que tenga contenido.
+    if(!box || !box.innerHTML.trim()){
       alert("Primero genera el reporte estructural visual.");
       return;
     }
@@ -5921,11 +5917,6 @@ function renderSuggestionsFromStruct(){
             </button>
           </div>
         </div>
-        <div class="structReportFullscreenZoomBar">
-          <span class="srHintSmall">Zoom</span>
-          <input type="range" id="srZoomRange" min="50" max="200" value="100" />
-          <span class="srHintSmall" id="srZoomLabel">100%</span>
-        </div>
         <div class="structReportFullscreenBody">
           <div class="structReportFullscreenContent"></div>
         </div>
@@ -5948,44 +5939,25 @@ function renderSuggestionsFromStruct(){
       content.style.transform = "scale(" + factor + ")";
     }
 
-    const zoomRange = overlay.querySelector("#srZoomRange");
-    const zoomLabel = overlay.querySelector("#srZoomLabel");
-
     function fitGridToScreen(){
       if(!body || !content) return;
-      // reset to 1:1 before medir
+      // reset a 1:1 antes de medir
       content.style.transform = "scale(1)";
       const gridWidth  = content.scrollWidth;
-      const gridHeight = content.scrollHeight;
-      const availWidth  = body.clientWidth;
-      const availHeight = body.clientHeight;
-      if(!gridWidth || !gridHeight || !availWidth || !availHeight) return;
+      const availWidth = body.clientWidth;
+      if(!gridWidth || !availWidth) return;
 
-      let scale = Math.min(availWidth / gridWidth, availHeight / gridHeight);
+      let scale = availWidth / gridWidth;
       if(!isFinite(scale) || scale <= 0) scale = 1;
 
-      // limitar al rango del slider (50%-200%)
-      const minFactor = 0.5;
-      const maxFactor = 2.0;
+      // solo reducimos si no cabe; nunca ampliamos por encima del 100%
+      if(scale > 1) scale = 1;
+
+      // límite inferior por si el grid es exageradamente ancho
+      const minFactor = 0.3;
       if(scale < minFactor) scale = minFactor;
-      if(scale > maxFactor) scale = maxFactor;
 
       applyZoomFactor(scale);
-
-      if(zoomRange){
-        const val = Math.round(scale * 100);
-        zoomRange.value = String(val);
-        if(zoomLabel) zoomLabel.textContent = val + "%";
-      }
-    }
-
-    if(zoomRange){
-      zoomRange.addEventListener("input", function(){
-        const val = parseInt(zoomRange.value, 10) || 100;
-        const factor = val / 100;
-        applyZoomFactor(factor);
-        if(zoomLabel) zoomLabel.textContent = val + "%";
-      });
     }
 
     // Ajuste inicial al abrir
