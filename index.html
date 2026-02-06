@@ -1085,6 +1085,59 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 .srCardTop{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
 .srLabel{ font-weight:800; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px; }
 .srTime{ font-size:12px; opacity:.95; white-space:nowrap; }
+.structReportFullscreenOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.76);
+  z-index:9999;
+  display:flex;
+  align-items:stretch;
+  justify-content:center;
+  padding:24px;
+}
+
+.structReportFullscreen{
+  background:var(--bg, #020617);
+  border-radius:16px;
+  box-shadow:0 18px 45px rgba(15,23,42,.85);
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:100%;
+  border:1px solid rgba(148,163,184,.35);
+}
+
+.structReportFullscreenHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 14px;
+  border-bottom:1px solid rgba(148,163,184,.35);
+}
+
+.structReportFullscreenHeader h3{
+  margin:0;
+  font-size:16px;
+}
+
+.structReportFullscreenHeader .srHintSmall{
+  margin:2px 0 0;
+  font-size:12px;
+  opacity:.8;
+}
+
+.structReportFullscreenBody{
+  flex:1;
+  padding:8px;
+  overflow:auto;
+}
+
+/* En modo pantalla completa permitimos que la tabla crezca sin límite de alto */
+.structReportFullscreenBody .structReportScroll{
+  max-height:none;
+  padding-bottom:16px;
+}
 
 
 /* ===== STRUCT REPORT COMPACT STYLES ===== */
@@ -1680,6 +1733,10 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
                 <button class="btn small ghost" id="btnCalcularSugerencias"
                   title="Resumir huecos por día y turno usando el reporte estructural">
                   Calcular sugerencias
+                </button>
+                <button class="btn small ghost" id="btnStructVisualFullscreen"
+                  title="Ver el grid en pantalla completa">
+                  Pantalla completa
                 </button>
               </div>
             </div>
@@ -4318,7 +4375,7 @@ function groupInfoHtmlForLabel(label){
       });
     });
 
-    const dayOrder = ["L","M","X","J","V","S","D"];
+    const dayOrder = ["L","M","X","J","V"];
     const dayName = {L:"Lunes", M:"Martes", X:"Miércoles", J:"Jueves", V:"Viernes", S:"Sábado", D:"Domingo"};
     const sessName = {morning:"Mañana", afternoon:"Tarde"};
 
@@ -5245,6 +5302,10 @@ function openSwapModal(team, context){
     if(v==="mixed" || v==="mixto" || v==="m/t") return "mixed";
     return "morning";
   }
+  function isOtherLabel(label){
+    return String(label||"").trim().toUpperCase()==="OTRO";
+  }
+
 
   
 
@@ -5528,7 +5589,7 @@ function renderSuggestionsFromStruct(){
     movesPanel.style.marginTop = "16px";
 
     const h = document.createElement("h4");
-    h.textContent = "Propuestas de compactación global (unificar consultas y liberar espacios)";
+    h.textContent = "Unificaciones completas (liberar consulta)";
     movesPanel.appendChild(h);
 
     const list = document.createElement("div");
@@ -5552,6 +5613,7 @@ function renderSuggestionsFromStruct(){
           arr.forEach(it=>{
             let label = (it.label || "").trim();
             if(!label) return;
+            if(isOtherLabel(label)) return;
             const key = label+"|"+turn;
             if(!byLabelTurnFull.has(key)){
               byLabelTurnFull.set(key, {label,turn,occByLoc:new Map()});
@@ -5643,15 +5705,13 @@ function renderSuggestionsFromStruct(){
 
         row.innerHTML = `
           <div class="moveMain">
+            <span class="badge badge-total">TOTAL</span>
             <strong>${s.label}</strong> · ${tLabel}
           </div>
           <div class="moveBody">
-            Unificar agenda trasladando <code>${s.fromLoc}</code> (${daysText})
-            → <code>${s.toLoc}</code>
-          </div>
-          <div class="moveImpact">
-            Impacto: ${s.fromLoc} pasa de ${s.impact.srcDaysBefore} a 0 días;
-            ${s.toLoc} pasa de ${s.impact.dstDaysBefore} a ${s.impact.dstDaysBefore + s.days.length} días.
+            <div class="moveLine"><span class="tag">De</span> <code>${s.fromLoc}</code></div>
+            <div class="moveLine"><span class="tag">A</span> <code>${s.toLoc}</code></div>
+            <div class="moveLine"><span class="tag">Días</span> ${daysText}</div>
           </div>
         `;
         list.appendChild(row);
@@ -5668,7 +5728,7 @@ function renderSuggestionsFromStruct(){
     movesPanel2.style.marginTop = "16px";
 
     const h2 = document.createElement("h4");
-    h2.textContent = "Otras propuestas de ajuste parcial (compactar sin liberar completamente)";
+    h2.textContent = "Ajustes parciales (compactar)";
     movesPanel2.appendChild(h2);
 
     const list2 = document.createElement("div");
@@ -5690,6 +5750,7 @@ function renderSuggestionsFromStruct(){
           arr.forEach(it=>{
             let label = (it.label || "").trim();
             if(!label) return;
+            if(isOtherLabel(label)) return;
             const key = label+"|"+turn;
             if(!byLabelTurnPartial.has(key)){
               byLabelTurnPartial.set(key, {label,turn,occByLoc:new Map()});
@@ -5763,14 +5824,13 @@ function renderSuggestionsFromStruct(){
 
         row.innerHTML = `
           <div class="moveMain">
+            <span class="badge badge-partial">PARCIAL</span>
             <strong>${s.label}</strong> · ${tLabel}
           </div>
           <div class="moveBody">
-            Mover sesiones sueltas de <code>${s.fromLoc}</code> (${daysText})
-            → <code>${s.toLoc}</code>
-          </div>
-          <div class="moveImpact">
-            Impacto: se compacta la agenda en ${s.toLoc} esos días sin liberar completamente ${s.fromLoc}.
+            <div class="moveLine"><span class="tag">De</span> <code>${s.fromLoc}</code></div>
+            <div class="moveLine"><span class="tag">A</span> <code>${s.toLoc}</code></div>
+            <div class="moveLine"><span class="tag">Días</span> ${daysText}</div>
           </div>
         `;
         list2.appendChild(row);
@@ -5809,5 +5869,83 @@ function renderSuggestionsFromStruct(){
   
 </div>
 
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  function openStructVisualFullscreen(){
+    const box = $("structVisualReport");
+    if(!box || box.classList.contains("hide") || !box.innerHTML.trim()){
+      alert("Primero genera el reporte estructural visual.");
+      return;
+    }
+
+    const scroll = box.querySelector(".structReportScroll");
+    const toClone = scroll || box;
+
+    const existing = document.getElementById("structReportFullscreenOverlay");
+    if(existing) existing.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "structReportFullscreenOverlay";
+    overlay.className = "structReportFullscreenOverlay";
+
+    overlay.innerHTML = `
+      <div class="structReportFullscreen">
+        <div class="structReportFullscreenHeader">
+          <div>
+            <h3>Reporte estructural (visual)</h3>
+            <p class="srHintSmall">Vista ampliada. Desplázate horizontal y verticalmente.</p>
+          </div>
+          <div class="structReportFullscreenActions">
+            <button type="button" class="btn small ghost" id="btnPrintStructVisual">
+              Imprimir
+            </button>
+            <button type="button" class="btn small ghost" id="btnCloseStructVisualFullscreen">
+              Cerrar
+            </button>
+          </div>
+        </div>
+        <div class="structReportFullscreenBody"></div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const body = overlay.querySelector(".structReportFullscreenBody");
+    const clone = toClone.cloneNode(true);
+    body.appendChild(clone);
+
+    overlay.addEventListener("click", function(ev){
+      if(ev.target === overlay){
+        overlay.remove();
+      }
+    });
+
+    const btnClose = overlay.querySelector("#btnCloseStructVisualFullscreen");
+    if(btnClose){
+      btnClose.addEventListener("click", function(){
+        overlay.remove();
+      });
+    }
+
+    const btnPrint = overlay.querySelector("#btnPrintStructVisual");
+    if(btnPrint){
+      btnPrint.addEventListener("click", function(){
+        window.print();
+      });
+    }
+  }
+
+  document.addEventListener("click", function(ev){
+    const btn = ev.target.closest("#btnStructVisualFullscreen");
+    if(!btn) return;
+    openStructVisualFullscreen();
+  });
+})();
+</script>
+
+
 </body>
+
 </html>
