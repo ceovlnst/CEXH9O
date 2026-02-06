@@ -1749,7 +1749,7 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               <div class="actions" style="margin-top:0; gap: 0.5rem;">
               <button class="btn small ghost" id="btnCalcularSugerencias"
                 title="Resumir huecos por día y turno usando el reporte estructural">
-                Calcular sugerencias
+                Analizar ocupación
               </button>
               <button class="btn small ghost" id="btnStructVisualFullscreen"
                 title="Ver el grid en pantalla completa">
@@ -2258,10 +2258,20 @@ S.doctor = doc;
         hideMsg($("msgLogin"));
         hideMsg($("msgMenu"));
 
-        if(isMaster()){
-          go("viewGrid");
-          $("gdDate").value = todayISO();
-          loadGrid();
+        if (isMaster()) {
+          go("viewReport");
+
+          const today = todayISO();
+          $("rpStart").value = today;
+          $("rpEnd").value = today;
+
+          // Generar automáticamente el reporte estructural visual (modo PRO)
+          setTimeout(() => {
+            if (typeof generateStructVisualReport === "function") {
+              generateStructVisualReport();
+            }
+          }, 150);
+
         } else {
           go("viewReserve");
           $("rvDate").value = addDaysISO(1);
