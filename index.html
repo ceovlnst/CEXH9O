@@ -1385,6 +1385,13 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
                 <option>5</option><option>6</option><option>7</option><option>8</option>
               </select>
             </div>
+            <div style="width:180px">
+              <label>Franja horaria</label>
+              <select id="gdSession">
+                <option value="morning">08–15 h</option>
+                <option value="afternoon">15–22 h</option>
+              </select>
+            </div>
             <div class="actions" style="margin-top:26px">
               <button class="btn primary" id="btnLoadGrid">Cargar Calendario</button>
 </div>
@@ -1665,6 +1672,61 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
           </div>
           <div class="hint">Distribución de CEXs estructurales por <b>día</b>, <b>CEX</b> y <b>sesión</b> (mañana/tarde).</div>
           <div id="structVisualReport" class="reportGrid hide"></div>
+          <!-- Sugerencias / análisis de huecos -->
+          <div id="structSuggestions" class="structPanel hide" style="margin-top:16px;">
+            <div class="rhead" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <h3 style="margin:0">Sugerencias / análisis de huecos</h3>
+              <div class="actions" style="margin-top:0; gap: 0.5rem;">
+                <button class="btn small ghost" id="btnCalcularSugerencias"
+                  title="Resumir huecos por día y turno usando el reporte estructural">
+                  Calcular sugerencias
+                </button>
+              </div>
+            </div>
+  <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0 8px 0">
+    <div>
+      <label for="fSugCex">Consulta</label>
+      <select id="fSugCex">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div>
+      <label for="fSugLabel">Equipo / etiqueta</label>
+      <input
+        id="fSugLabel"
+        list="doctorLabelList"
+        placeholder="Escribe nombre o iniciales…"
+        autocomplete="off"
+      />
+    </div>
+    <div>
+      <label for="fSugDay">Día de la semana</label>
+      <select id="fSugDay">
+        <option value="">Todos</option>
+        <option value="L">Lunes</option>
+        <option value="M">Martes</option>
+        <option value="X">Miércoles</option>
+        <option value="J">Jueves</option>
+        <option value="V">Viernes</option>
+        <option value="S">Sábado</option>
+        <option value="D">Domingo</option>
+      </select>
+    </div>
+    <div>
+      <label for="fSugTurn">Turno</label>
+      <select id="fSugTurn">
+        <option value="both">Mañana y tarde</option>
+        <option value="morning">Solo mañana</option>
+        <option value="afternoon">Solo tarde</option>
+      </select>
+    </div>
+  </div>
+
+            <div id="structSuggestionsContent"></div>
+          </div>
+
+
+          
         </div>
 
 
@@ -2344,8 +2406,10 @@ S.doctor = doc;
 
     const dateStr = $("gdDate").value || todayISO();
     $("gdDate").value = dateStr;
+    const sessionEl = $("gdSession");
+    const session = sessionEl ? (sessionEl.value || "morning") : "morning";
 
-    callGAS("getGridOccupancy", [S.pin, dateStr], {
+    callGAS("getGridOccupancy", [S.pin, dateStr, session], {
       key:"grid",
       disable:[$("btnLoadGrid")],
       msg:"Cargando Calendario…",
@@ -4204,7 +4268,14 @@ function groupInfoHtmlForLabel(label){
       msg:"Generando reporte visual…",
       onSuccess:(res)=>{
         try{
+          // Renderiza el reporte estructural visual
           renderStructVisualReport(res);
+
+          // Después de generar el reporte, disparamos también la acción de "Calcular sugerencias"
+          const sugBtn = $("btnCalcularSugerencias");
+          if (sugBtn) {
+            sugBtn.click();
+          }
         }catch(err){
           console.error(err);
           showMsg($("msgReport"), "Error renderizando el reporte: " + (err?.message||String(err)), "bad");
@@ -5731,52 +5802,11 @@ function renderSuggestionsFromStruct(){
 })();
 </script>
 
-<!-- Panel oculto de sugerencias -->
-<div id="structSuggestions" class="structPanel hide">
-  <div class="rhead">
-    <h3 style="margin:0">Sugerencias / análisis de huecos</h3>
-  </div>
 
-  <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
-    <div>
-      <label for="fSugCex">Consulta</label>
-      <select id="fSugCex">
-        <option value="">Todas</option>
-      </select>
-    </div>
-    <div>
-      <label for="fSugLabel">Equipo / etiqueta</label>
-      <input
-        id="fSugLabel"
-        list="doctorLabelList"
-        placeholder="Escribe nombre o iniciales…"
-        autocomplete="off"
-      />
-    </div>
-    <div>
-      <label for="fSugDay">Día de la semana</label>
-      <select id="fSugDay">
-        <option value="">Todos</option>
-        <option value="L">Lunes</option>
-        <option value="M">Martes</option>
-        <option value="X">Miércoles</option>
-        <option value="J">Jueves</option>
-        <option value="V">Viernes</option>
-        <option value="S">Sábado</option>
-        <option value="D">Domingo</option>
-      </select>
-    </div>
-    <div>
-      <label for="fSugTurn">Turno</label>
-      <select id="fSugTurn">
-        <option value="both">Mañana y tarde</option>
-        <option value="morning">Solo mañana</option>
-        <option value="afternoon">Solo tarde</option>
-      </select>
-    </div>
-  </div>
 
-  <div id="structSuggestionsContent"></div>
+  
+
+  
 </div>
 
 </body>
