@@ -1292,6 +1292,15 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
 #modal.modal .field label{ font-size:11px !important; }
 #modal.modal input, #modal.modal select{ padding:6px 8px !important; font-size:13px !important; }
 
+
+/* --- FIX: asegurar que el modal de información quede por delante del fullscreen --- */
+#srModalBackdrop{
+  z-index: 100000 !important;
+}
+#srModal{
+  z-index: 100001 !important;
+}
+
 </style>
 </head>
 
@@ -1747,9 +1756,8 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
             </div>
   <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0 8px 0">
     <div>
-      <label for="fSugCex">Consulta</label>
-      <select id="fSugCex">
-        <option value="">Todas</option>
+      <label for="fSugCex">Consulta (multi)</label>
+      <select id="fSugCex" multiple size="6">
       </select>
     </div>
     <div>
@@ -4463,18 +4471,16 @@ function groupInfoHtmlForLabel(label){
               // sombra mínima para separar sin “pastel”
               btn.style.boxShadow = "inset 0 0 0 1px rgba(255,255,255,.10)";
 
-              btn.onclick = ()=>{
-                openStructReportBlockModal({
-                  location: loc,
-                  day: dayName[d],
-                  dayKey: d,
-                  session: sessName[sess],
-                  sessionKey: sess,
-                  label: it.label,
-                  time: it.time || "",
-                  responsable: it.responsable || "—"
-                });
-              };
+              // Guardamos datos en data-* para poder abrir el modal también en el grid clonado
+              btn.dataset.location = loc;
+              btn.dataset.day = dayName[d];
+              btn.dataset.dayKey = d;
+              btn.dataset.session = sessName[sess];
+              btn.dataset.sessionKey = sess;
+              btn.dataset.label = it.label || "";
+              btn.dataset.time = it.time || "";
+              btn.dataset.responsable = it.responsable || "—";
+
               stack.appendChild(btn);
             });
 
@@ -4788,6 +4794,12 @@ function groupInfoHtmlForLabel(label){
 
 
 function openStructReportBlockModal(info){
+    // Forzar el modal por delante de cualquier overlay
+    const bd = document.getElementById('srModalBackdrop');
+    if(bd){ bd.style.zIndex = '100000'; }
+    const md = document.getElementById('srModal');
+    if(md){ md.style.zIndex = '100001'; }
+
     ensureStructReportModal();
 
     const show = ()=>{
@@ -5025,7 +5037,28 @@ function openSwapModal(team, context){
       status.textContent = "❌ " + (e?.message || String(e));
     }
   }, { once:true });
+
+
+
 }
+document.addEventListener("click", function(ev){
+  const card = ev.target.closest(".srCard");
+  if(!card) return;
+  const info = {
+    location: card.dataset.location || "",
+    day: card.dataset.day || "",
+    dayKey: card.dataset.dayKey || "",
+    session: card.dataset.session || "",
+    sessionKey: card.dataset.sessionKey || "",
+    label: card.dataset.label || "",
+    time: card.dataset.time || "",
+    responsable: card.dataset.responsable || "—"
+  };
+  if (info.label) {
+    openStructReportBlockModal(info);
+  }
+});
+
 
 </script>
 
@@ -5108,6 +5141,15 @@ function openSwapModal(team, context){
 }
 #modal.modal .field label{ font-size:11px !important; }
 #modal.modal input, #modal.modal select{ padding:6px 8px !important; font-size:13px !important; }
+
+
+/* --- FIX: asegurar que el modal de información quede por delante del fullscreen --- */
+#srModalBackdrop{
+  z-index: 100000 !important;
+}
+#srModal{
+  z-index: 100001 !important;
+}
 
 </style>
 
@@ -5330,7 +5372,17 @@ function openSwapModal(team, context){
       selCex.__filled = true;
     }
 
-    const fCex   = selCex ? selCex.value : "";
+    // Multi-selección de CEX: si no hay ninguna seleccionada -> todas
+    let selectedCex = allCex.slice();
+    if(selCex){
+      const chosen = Array.from(selCex.selectedOptions || [])
+        .map(o => o.value)
+        .filter(v => v);
+      if(chosen.length){
+        selectedCex = allCex.filter(c => chosen.includes(c));
+      }
+    }
+
     const fDay   = selDay ? selDay.value : "";
     const fTurn  = selTurn ? selTurn.value : "both"; // both | morning | afternoon
     const fLabel = (inpLabel && inpLabel.value) ? inpLabel.value.trim().toLowerCase() : "";
@@ -5340,7 +5392,7 @@ function openSwapModal(team, context){
 
     const days = fDay ? [fDay] : WEEK_DAYS.slice();
 
-    const CEX_LIST = fCex ? allCex.filter(c => c === fCex) : allCex;
+    const CEX_LIST = selectedCex;
     const totalCex = CEX_LIST.length;
     const cexSet   = new Set(CEX_LIST);
 
