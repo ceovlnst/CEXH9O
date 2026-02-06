@@ -1642,9 +1642,12 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
               <div class="filterBar">
                 <div class="field">
                   <label>Filtrar por equipo (etiqueta)</label>
-                  <select id="structTeamFilter">
-                    <option value="">(Todos)</option>
-                  </select>
+                  <input
+                    id="structTeamFilter"
+                    list="doctorLabelList"
+                    placeholder="Escribe nombre o iniciales…"
+                    autocomplete="off"
+                  />
                 </div>
 
                 <div class="field">
@@ -3247,18 +3250,31 @@ function renderStructFiltersAndList(){
     const rules = dd.rules;
     const dupCount = dd.dupCount;
 
-    const select = $("structTeamFilter");
-    if(select){
-      const labels = Array.from(new Set(rules.map(r=>String(r.label || "").trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"es"));
-      select.innerHTML = '<option value="">(Todos)</option>';
-      labels.forEach(l=>{
-        const opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        select.appendChild(opt);
-      });
-      select.value = S.structTeamFilter || "";
+        const teamEl = $("structTeamFilter");
+    if (teamEl) {
+      if (teamEl.tagName === "SELECT") {
+        // Compatibilidad por si en alguna versión sigues usando <select>
+        const labels = Array.from(
+          new Set(
+            rules
+              .map(r => String(r.label || "").trim())
+              .filter(Boolean)
+          )
+        ).sort((a,b)=>a.localeCompare(b,"es"));
+        teamEl.innerHTML = '<option value="">(Todos)</option>';
+        labels.forEach(l=>{
+          const opt = document.createElement("option");
+          opt.value = l;
+          opt.textContent = l;
+          teamEl.appendChild(opt);
+        });
+        teamEl.value = S.structTeamFilter || "";
+      } else {
+        // Ahora es un <input>: solo sincronizamos el valor
+        teamEl.value = S.structTeamFilter || "";
+      }
     }
+
     const daySel = $("structDayFilter");
     if(daySel){
       daySel.value = S.structDayFilter || "";
@@ -3303,7 +3319,13 @@ function renderStructFiltersAndList(){
     }
 
     const filtered = rules.filter(r=>{
-      const okTeam = S.structTeamFilter ? (String(r.label||"").trim() === S.structTeamFilter) : true;
+      const searchTeam = (S.structTeamFilter || "").trim().toLowerCase();
+      const okTeam = searchTeam
+        ? String(r.label || "")
+            .trim()
+            .toLowerCase()
+            .includes(searchTeam)
+        : true;
       if(!okTeam) return false;
 
       const okOr = S.structOrFilter ? (String(r.orName||r.location||"").trim() === S.structOrFilter) : true;
@@ -4933,11 +4955,18 @@ if($("btnToggleAdvanced")) $("btnToggleAdvanced").onclick = ()=>{
     if($("btnDeleteStructById")) $("btnDeleteStructById").onclick = deleteStructById;
     if($("btnReloadStruct")) $("btnReloadStruct").onclick = refreshStructList;
     if($("btnStructClearFilter")) $("btnStructClearFilter").onclick = clearStructFilter;
-    $("structTeamFilter").onchange = setStructTeamFilter;
+
+    const stTeamEl = $("structTeamFilter");
+    if (stTeamEl) {
+      // Solo filtramos al confirmar/cambiar el valor (como en el editor),
+      // no en cada pulsación de tecla.
+      stTeamEl.onchange = setStructTeamFilter;
+    }
+
     if($("structDayFilter")) $("structDayFilter").onchange = setStructDayFilter;
-$("structOrFilter").onchange = setStructOrFilter;
-    $("structHourFilter").onchange = setStructHourFilter;
-        $("stCadence").onchange = syncCadenceUI;
+    if($("structOrFilter"))  $("structOrFilter").onchange  = setStructOrFilter;
+    if($("structHourFilter")) $("structHourFilter").onchange = setStructHourFilter;
+    $("stCadence").onchange = syncCadenceUI;
 
     // NO estructurales master
     if($("btnNSFindSlots")) $("btnNSFindSlots").onclick = ()=>masterFindNonStructSlots();
