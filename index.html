@@ -1133,6 +1133,22 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   overflow:auto;
 }
 
+.structReportFullscreenZoomBar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  padding:4px 12px 0;
+}
+
+.structReportFullscreenZoomBar input[type=range]{
+  width:140px;
+}
+
+.structReportFullscreenContent{
+  transform-origin: top left;
+}
+
 /* En modo pantalla completa permitimos que la tabla crezca sin límite de alto */
 .structReportFullscreenBody .structReportScroll{
   max-height:none;
@@ -1720,7 +1736,6 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
             <h3 style="margin:0">Reporte estructural (visual)</h3>
             <div class="actions" style="margin-top:0; gap: 0.5rem;">
               <button class="btn small primary" id="btnStructVisualReport">Generar / actualizar</button>
-              <button class="btn small ghost" id="btnCalcularSugerencias" title="Resumir huecos por día y turno usando el reporte estructural">Calcular sugerencias</button>
             </div>
           </div>
           <div class="hint">Distribución de CEXs estructurales por <b>día</b>, <b>CEX</b> y <b>sesión</b> (mañana/tarde).</div>
@@ -1730,15 +1745,15 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
             <div class="rhead" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
               <h3 style="margin:0">Sugerencias / análisis de huecos</h3>
               <div class="actions" style="margin-top:0; gap: 0.5rem;">
-                <button class="btn small ghost" id="btnCalcularSugerencias"
-                  title="Resumir huecos por día y turno usando el reporte estructural">
-                  Calcular sugerencias
-                </button>
-                <button class="btn small ghost" id="btnStructVisualFullscreen"
-                  title="Ver el grid en pantalla completa">
-                  Pantalla completa
-                </button>
-              </div>
+              <button class="btn small ghost" id="btnCalcularSugerencias"
+                title="Resumir huecos por día y turno usando el reporte estructural">
+                Calcular sugerencias
+              </button>
+              <button class="btn small ghost" id="btnStructVisualFullscreen"
+                title="Ver el grid en pantalla completa">
+                Pantalla completa
+              </button>
+            </div>
             </div>
   <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0 8px 0">
     <div>
@@ -5906,15 +5921,75 @@ function renderSuggestionsFromStruct(){
             </button>
           </div>
         </div>
-        <div class="structReportFullscreenBody"></div>
+        <div class="structReportFullscreenZoomBar">
+          <span class="srHintSmall">Zoom</span>
+          <input type="range" id="srZoomRange" min="50" max="200" value="100" />
+          <span class="srHintSmall" id="srZoomLabel">100%</span>
+        </div>
+        <div class="structReportFullscreenBody">
+          <div class="structReportFullscreenContent"></div>
+        </div>
       </div>
     `;
 
     document.body.appendChild(overlay);
 
     const body = overlay.querySelector(".structReportFullscreenBody");
+    const content = overlay.querySelector(".structReportFullscreenContent");
     const clone = toClone.cloneNode(true);
-    body.appendChild(clone);
+    if(content){
+      content.appendChild(clone);
+    } else if(body){
+      body.appendChild(clone);
+    }
+
+    function applyZoomFactor(factor){
+      if(!content) return;
+      content.style.transform = "scale(" + factor + ")";
+    }
+
+    const zoomRange = overlay.querySelector("#srZoomRange");
+    const zoomLabel = overlay.querySelector("#srZoomLabel");
+
+    function fitGridToScreen(){
+      if(!body || !content) return;
+      // reset to 1:1 before medir
+      content.style.transform = "scale(1)";
+      const gridWidth  = content.scrollWidth;
+      const gridHeight = content.scrollHeight;
+      const availWidth  = body.clientWidth;
+      const availHeight = body.clientHeight;
+      if(!gridWidth || !gridHeight || !availWidth || !availHeight) return;
+
+      let scale = Math.min(availWidth / gridWidth, availHeight / gridHeight);
+      if(!isFinite(scale) || scale <= 0) scale = 1;
+
+      // limitar al rango del slider (50%-200%)
+      const minFactor = 0.5;
+      const maxFactor = 2.0;
+      if(scale < minFactor) scale = minFactor;
+      if(scale > maxFactor) scale = maxFactor;
+
+      applyZoomFactor(scale);
+
+      if(zoomRange){
+        const val = Math.round(scale * 100);
+        zoomRange.value = String(val);
+        if(zoomLabel) zoomLabel.textContent = val + "%";
+      }
+    }
+
+    if(zoomRange){
+      zoomRange.addEventListener("input", function(){
+        const val = parseInt(zoomRange.value, 10) || 100;
+        const factor = val / 100;
+        applyZoomFactor(factor);
+        if(zoomLabel) zoomLabel.textContent = val + "%";
+      });
+    }
+
+    // Ajuste inicial al abrir
+    setTimeout(fitGridToScreen, 50);
 
     overlay.addEventListener("click", function(ev){
       if(ev.target === overlay){
