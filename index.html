@@ -5429,12 +5429,14 @@ function openSwapModal(team, context){
       tbDay.appendChild(tr);
     });
 
-    const secDay = document.createElement("div");
-    const h4d = document.createElement("h4");
-    h4d.textContent = "Resumen por día";
-    h4d.style.margin = "4px 0";
-    secDay.appendChild(h4d);
+    const secDay = document.createElement("details");
+    secDay.className = "srSection";
+    const sumDay = document.createElement("summary");
+    sumDay.textContent = "Resumen por día (L-V)";
+    sumDay.className = "srSummary";
+    secDay.appendChild(sumDay);
     secDay.appendChild(tblDay);
+    secDay.open = false;
     content.appendChild(secDay);
 
     // =========================
@@ -5506,12 +5508,14 @@ function openSwapModal(team, context){
       tbCex.appendChild(tr);
     });
 
-    const secCex = document.createElement("div");
-    const h4c = document.createElement("h4");
-    h4c.textContent = "Resumen por consulta";
-    h4c.style.margin = "12px 0 4px 0";
-    secCex.appendChild(h4c);
+    const secCex = document.createElement("details");
+    secCex.className = "srSection";
+    const sumCex = document.createElement("summary");
+    sumCex.textContent = "Resumen por consulta (CEX)";
+    sumCex.className = "srSummary";
+    secCex.appendChild(sumCex);
     secCex.appendChild(tblCex);
+    secCex.open = false;
     content.appendChild(secCex);
   }
 
