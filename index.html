@@ -1301,6 +1301,31 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
   z-index: 100001 !important;
 }
 
+
+    /* Grid split: CEX vs HOSP (collapsible) */
+    details.gridDetails{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--card);
+      margin-top:10px;
+      overflow:hidden;
+    }
+    summary.gridSummary{
+      cursor:pointer;
+      padding:10px 12px;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    details.gridDetails[open] summary.gridSummary{
+      border-bottom:1px solid var(--line);
+      background:var(--softAcc);
+    }
+    summary.gridSummary::-webkit-details-marker{ display:none; }
+    .gridInner{ padding:10px 10px 12px 10px; }
+
 </style>
 </head>
 
@@ -1901,8 +1926,13 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     "CEX C40","CEX C41","CEX C42","CEX C43","CEX C44","CEX C45","CEX C46","CEX C47","CEX C48","CEX C49",
     "CEX C50","CEX C51","CEX C52","CEX C53","CEX C54","CEX C55","CEX C56","CEX C57",
     // Hospital (10)
-    "HOSP C01","HOSP C02","HOSP C03","HOSP C04","HOSP C05",
-    "HOSP C06","HOSP C07","HOSP C08","HOSP C09","HOSP C10"
+    "HOSP 0-1","HOSP 0-7","HOSP 0-8","HOSP 0-9","HOSP 1-27","HOSP 1-28",
+    "HOSP 1-29","HOSP 1-35","HOSP 1-36","HOSP 1-42A","HOSP 1-42B","HOSP 1-43",
+    "HOSP 2A-","HOSP 2A-1","HOSP 2A-13a16","HOSP 2A-2","HOSP 2A-3","HOSP 2A-6a12",
+    "HOSP 2B-","HOSP 2C-","HOSP 2C-1","HOSP 2C-10","HOSP 2C-13","HOSP 2C-14",
+    "HOSP 2C-15","HOSP 2C-16","HOSP 2C-1a4","HOSP 2C-2","HOSP 2C-4","HOSP 2C-5",
+    "HOSP 2C-5a14","HOSP 2C-6","HOSP 2C-7","HOSP 2C-8","HOSP 2D-11","HOSP 2D-12",
+    "HOSP 2D-13","HOSP 2D-15","HOSP 2D-16","HOSP 2D-8","HOSP 2D-9"
   ];
 
   const SPECIALTIES = [
@@ -2516,64 +2546,94 @@ S.doctor = doc;
     }
     hideMsg($("msgGrid"));
 
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    const trh = document.createElement("tr");
-    const thOr = document.createElement("th");
-    thOr.textContent = "CEX";
-    trh.appendChild(thOr);
+    // ===========================
+    // Split grid in two sections: CEX vs HOSP
+    // Default: both collapsed (details closed)
+    // ===========================
+    const allRows = data.rows || [];
+    const rowsCEX  = allRows.filter(r => String(r.orName||"").startsWith("CEX "));
+    const rowsHOSP = allRows.filter(r => String(r.orName||"").startsWith("HOSP "));
 
-    data.hoursOrder.forEach(h=>{
-      const th = document.createElement("th");
-      th.textContent = String(h).padStart(2,"0")+":00";
-      trh.appendChild(th);
-    });
-    thead.appendChild(trh);
-    table.appendChild(thead);
+    const mkDetails = (title, rows, key)=>{
+      const det = document.createElement("details");
+      det.className = "gridDetails";
+      det.dataset.section = key;
 
-    const tbody = document.createElement("tbody");
-    data.rows.forEach((row)=>{
-      const tr = document.createElement("tr");
-      const tdOr = document.createElement("td");
-      tdOr.textContent = row.orName;
-      tr.appendChild(tdOr);
+      const sum = document.createElement("summary");
+      sum.className = "gridSummary";
+      sum.innerHTML = `<b>${escapeHtml(title)}</b> <span class="muted">(${rows.length})</span>`;
+      det.appendChild(sum);
 
-      row.cells.forEach((cell, ci)=>{
-        const td = document.createElement("td");
-        td.dataset.orName = row.orName;
-        td.dataset.hour = cell.hour;
-        td.dataset.status = cell.status;
-        td.dataset.date = data.date;
+      const wrap = document.createElement("div");
+      wrap.className = "gridInner";
+      det.appendChild(wrap);
 
-        if(cell.status === "NA"){
-          td.className = "cellNA";
-          td.textContent = "";
-        } else if(cell.status === "FREE"){
-          td.className = "cellFree";
-          td.textContent = "Libre";
-        } else if(cell.status === "NON"){
-          td.className = "cellNon";
-          td.textContent = cell.displayTitle || "No estructural";
-          td.dataset.cellIndex = String(ci);
-        } else if(cell.status === "STRUCT"){
-          td.className = "cellStruct";
-          td.textContent = cell.displayTitle || "Estructural";
-        }
+      // Render table into wrap (reuse the same logic you already had)
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const trh = document.createElement("tr");
+      const thOr = document.createElement("th");
+      thOr.textContent = "CEX";
+      trh.appendChild(thOr);
 
-        if(cell.status !== "NA"){
-          if(cell.eventId) td.dataset.eventId = cell.eventId;
-          if(cell.ruleId)  td.dataset.ruleId  = cell.ruleId;
-          if(cell.label)   td.dataset.label   = cell.label;
-          td.onclick = ()=>onGridCellClick(td);
-        }
-
-        tr.appendChild(td);
+      data.hoursOrder.forEach(h=>{
+        const th = document.createElement("th");
+        th.textContent = String(h).padStart(2,"0")+":00";
+        trh.appendChild(th);
       });
+      thead.appendChild(trh);
+      table.appendChild(thead);
 
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    box.appendChild(table);
+      const tbody = document.createElement("tbody");
+      rows.forEach((row)=>{
+        const tr = document.createElement("tr");
+        const tdOr = document.createElement("td");
+        tdOr.textContent = row.orName;
+        tr.appendChild(tdOr);
+
+        row.cells.forEach((cell, ci)=>{
+          const td = document.createElement("td");
+          td.dataset.orName = row.orName;
+          td.dataset.hour = cell.hour;
+          td.dataset.status = cell.status;
+          td.dataset.date = data.date;
+
+          if(cell.status === "NA"){
+            td.className = "cellNA";
+            td.textContent = "";
+          } else if(cell.status === "FREE"){
+            td.className = "cellFree";
+            td.textContent = "Libre";
+          } else if(cell.status === "NON"){
+            td.className = "cellNon";
+            td.textContent = cell.displayTitle || "No estructural";
+            td.dataset.cellIndex = String(ci);
+          } else if(cell.status === "STRUCT"){
+            td.className = "cellStruct";
+            td.textContent = cell.displayTitle || "Estructural";
+          }
+
+          if(cell.status !== "NA"){
+            if(cell.eventId) td.dataset.eventId = cell.eventId;
+            if(cell.ruleId)  td.dataset.ruleId  = cell.ruleId;
+            if(cell.label)   td.dataset.label   = cell.label;
+            td.onclick = ()=>onGridCellClick(td);
+          }
+
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+
+      return det;
+    };
+
+    // Add both sections (collapsed by default)
+    box.appendChild(mkDetails("CEX", rowsCEX, "cex"));
+    box.appendChild(mkDetails("HOSP", rowsHOSP, "hosp"));
   }
 
   function renderGridKpis(){
