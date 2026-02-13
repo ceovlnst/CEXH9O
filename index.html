@@ -1500,6 +1500,167 @@ details.gridDetails[open] summary.gridSummary{
   border-bottom: none !important;
 }
 
+/* =========================
+   APPLE VISION PRO – PANEL SUGERENCIAS (Glass + spacing)
+   ========================= */
+#structSuggestions.structPanel{
+  margin-top: 18px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(15,23,42,0.08) !important;
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08) !important;
+  padding: 16px 16px 14px 16px !important;
+}
+
+/* Header */
+#structSuggestions .rhead{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap: 12px !important;
+  margin: 0 0 10px 0 !important;
+}
+
+#structSuggestions .rhead h3{
+  margin:0 !important;
+  font-size: 18px !important;
+  letter-spacing: 0.2px;
+}
+
+/* Actions as subtle pills */
+#structSuggestions .actions{
+  display:flex !important;
+  gap: 10px !important;
+  margin-top: 0 !important;
+  flex-wrap: wrap;
+}
+
+#structSuggestions .actions .btn.small.ghost{
+  border-radius: 999px !important;
+  padding: 8px 12px !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
+  background: rgba(255,255,255,0.55) !important;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06) !important;
+}
+
+/* Filters row */
+#structSuggestions .row{
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin: 10px 0 12px 0 !important;
+}
+
+#structSuggestions label{
+  display:block;
+  font-size: 12px !important;
+  font-weight: 600;
+  color: rgba(30,41,59,0.80);
+  margin-bottom: 6px;
+  letter-spacing: 0.2px;
+}
+
+/* Inputs & selects (VisionOS style) */
+#structSuggestions select,
+#structSuggestions input{
+  border-radius: 16px !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
+  background: rgba(255,255,255,0.62) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 6px 16px rgba(2,6,23,0.06);
+  padding: 10px 12px !important;
+  min-height: 42px;
+  font-size: 14px !important;
+  outline: none;
+}
+
+#structSuggestions input::placeholder{
+  color: rgba(51,65,85,0.55);
+}
+
+/* Multi-select: make it look intentional */
+#fSugCex[multiple]{
+  min-width: 140px;
+  min-height: 152px;
+  padding: 10px 12px !important;
+}
+
+/* nicer scrollbars (webkit) */
+#structSuggestions *::-webkit-scrollbar{ height: 10px; width: 10px; }
+#structSuggestions *::-webkit-scrollbar-thumb{
+  background: rgba(15,23,42,0.18);
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.55);
+}
+#structSuggestions *::-webkit-scrollbar-track{
+  background: rgba(15,23,42,0.04);
+  border-radius: 999px;
+}
+
+/* Content area spacing */
+#structSuggestionsContent{
+  margin-top: 8px;
+}
+
+/* Details summaries inside suggestions */
+#structSuggestionsContent details{
+  margin-top: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(15,23,42,0.08);
+  background: rgba(255,255,255,0.55);
+  overflow: hidden;
+}
+
+#structSuggestionsContent summary{
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+#structSuggestionsContent details[open] summary{
+  background: rgba(15,23,42,0.03);
+  border-bottom: 1px solid rgba(15,23,42,0.08);
+}
+
+#structSuggestionsContent .muted{
+  opacity: 0.75;
+}
+
+/* Dark-mode friendly */
+@media (prefers-color-scheme: dark){
+  #structSuggestions.structPanel{
+    background: rgba(2,6,23,0.55) !important;
+    border: 1px solid rgba(148,163,184,0.16) !important;
+    box-shadow: 0 12px 34px rgba(0,0,0,0.35) !important;
+  }
+  #structSuggestions label{ color: rgba(226,232,240,0.75); }
+  #structSuggestions select,
+  #structSuggestions input{
+    background: rgba(2,6,23,0.45) !important;
+    border: 1px solid rgba(148,163,184,0.18) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 10px 24px rgba(0,0,0,0.35);
+    color: rgba(226,232,240,0.92);
+  }
+  #structSuggestions input::placeholder{ color: rgba(226,232,240,0.45); }
+  #structSuggestions .actions .btn.small.ghost{
+    background: rgba(2,6,23,0.35) !important;
+    border: 1px solid rgba(148,163,184,0.20) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35) !important;
+  }
+  #structSuggestionsContent details{
+    background: rgba(2,6,23,0.35);
+    border: 1px solid rgba(148,163,184,0.16);
+  }
+  #structSuggestionsContent details[open] summary{
+    background: rgba(148,163,184,0.06);
+    border-bottom: 1px solid rgba(148,163,184,0.16);
+  }
+}
+
 </style>
 </head>
 
