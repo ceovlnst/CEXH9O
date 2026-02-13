@@ -2147,7 +2147,7 @@ details.gridDetails[open] summary.gridSummary{
               <div class="actions" style="margin-top:0; gap: 0.5rem;">
               <button class="btn small ghost" id="btnCalcularSugerencias"
                 title="Resumir huecos por día y turno usando el reporte estructural">
-                Analizar ocupación
+                Actualizar análisis
               </button>
               <button class="btn small ghost" id="btnStructVisualFullscreen"
                 title="Ver el grid en pantalla completa">
@@ -2157,9 +2157,12 @@ details.gridDetails[open] summary.gridSummary{
             </div>
   <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0 8px 0">
     <div>
-      <label for="fSugCex">Consulta (multi)</label>
-      <select id="fSugCex" multiple size="6">
-      </select>
+      <label for="fSugCex">Consulta (multi) — CEX</label>
+      <select id="fSugCex" multiple size="6"></select>
+    </div>
+    <div>
+      <label for="fSugHosp">Consulta (multi) — HOSP</label>
+      <select id="fSugHosp" multiple size="6"></select>
     </div>
     <div>
       <label for="fSugLabel">Equipo / etiqueta</label>
@@ -4900,7 +4903,32 @@ function groupInfoHtmlForLabel(label){
 
     const tbody = document.createElement("tbody");
 
-    [...map.keys()].sort((a,b)=>a.localeCompare(b,"es")).forEach(loc=>{
+    function _locSort(a,b){
+  const A = String(a), B = String(b);
+
+  const aH = A.startsWith("HOSP ");
+  const bH = B.startsWith("HOSP ");
+
+  // Si ambos son HOSP → orden numérico real
+  if(aH && bH){
+    const na = parseInt(A.slice(5), 10);
+    const nb = parseInt(B.slice(5), 10);
+
+    const aNum = Number.isFinite(na);
+    const bNum = Number.isFinite(nb);
+
+    if(aNum && bNum) return na - nb;
+    if(aNum && !bNum) return -1;
+    if(!aNum && bNum) return 1;
+
+    return A.localeCompare(B, "es");
+  }
+
+  // Para el resto (CEX u otros) mantenemos orden actual
+  return A.localeCompare(B, "es");
+}
+
+[...map.keys()].sort(_locSort).forEach(loc=>{
       const tr = document.createElement("tr");
 
       const tdLoc = document.createElement("td");
@@ -5818,17 +5846,21 @@ document.addEventListener("click", function(ev){
       return;
     }
 
-    // Lista de consultas (CEX) desde OR_LIST
+    // Lista de consultas desde OR_LIST
     const baseList = (typeof OR_LIST !== "undefined" && Array.isArray(OR_LIST))
       ? OR_LIST
       : (window.OR_LIST || []);
-    const allCex = baseList.filter(n => String(n).startsWith("CEX "));
-    const selCex  = $("fSugCex");
-    const selDay  = $("fSugDay");
-    const selTurn = $("fSugTurn");
+
+    const allCex  = baseList.filter(n => String(n).startsWith("CEX "));
+    const allHosp = baseList.filter(n => String(n).startsWith("HOSP "));
+
+    const selCex   = $("fSugCex");
+    const selHosp  = $("fSugHosp");
+    const selDay   = $("fSugDay");
+    const selTurn  = $("fSugTurn");
     const inpLabel = $("fSugLabel");
 
-    // Rellenar combo de CEX solo la primera vez
+    // Rellenar combos solo la primera vez
     if(selCex && !selCex.__filled){
       allCex.forEach(loc => {
         const opt = document.createElement("option");
@@ -5838,8 +5870,17 @@ document.addEventListener("click", function(ev){
       });
       selCex.__filled = true;
     }
+    if(selHosp && !selHosp.__filled){
+      allHosp.forEach(loc => {
+        const opt = document.createElement("option");
+        opt.value = loc;
+        opt.textContent = loc;
+        selHosp.appendChild(opt);
+      });
+      selHosp.__filled = true;
+    }
 
-    // Multi-selección de CEX: si no hay ninguna seleccionada -> todas
+    // Multi-selección: si no hay ninguna seleccionada -> todas
     let selectedCex = allCex.slice();
     if(selCex){
       const chosen = Array.from(selCex.selectedOptions || [])
@@ -5850,18 +5891,23 @@ document.addEventListener("click", function(ev){
       }
     }
 
+    let selectedHosp = allHosp.slice();
+    if(selHosp){
+      const chosen = Array.from(selHosp.selectedOptions || [])
+        .map(o => o.value)
+        .filter(v => v);
+      if(chosen.length){
+        selectedHosp = allHosp.filter(c => chosen.includes(c));
+      }
+    }
+
     const fDay   = selDay ? selDay.value : "";
     const fTurn  = selTurn ? selTurn.value : "both"; // both | morning | afternoon
     const fLabel = (inpLabel && inpLabel.value) ? inpLabel.value.trim().toLowerCase() : "";
 
     const WEEK_DAYS = ["L","M","X","J","V"];
     const dayName   = {L:"Lunes",M:"Martes",X:"Miércoles",J:"Jueves",V:"Viernes",S:"Sábado",D:"Domingo"};
-
     const days = fDay ? [fDay] : WEEK_DAYS.slice();
-
-    const CEX_LIST = selectedCex;
-    const totalCex = CEX_LIST.length;
-    const cexSet   = new Set(CEX_LIST);
 
     function cellHasMatch(arr){
       if(!arr || !arr.length) return false;
@@ -5873,172 +5919,127 @@ document.addEventListener("click", function(ev){
       });
     }
 
-    // =========================
-    // RESUMEN POR DÍA
-    // =========================
-    const occByDay = {};
-    days.forEach(d => occByDay[d] = {morning:0,afternoon:0});
+    function buildDaySection(locList, title){
+      const totalLoc = locList.length || 0;
+      const locSet = new Set(locList);
 
-    gridMap.forEach((byDay, loc) => {
-      if(!cexSet.has(loc)) return;
-      days.forEach(d => {
-        const dayObj = byDay[d];
-        if(!dayObj) return;
-        const mArr = dayObj.morning || [];
-        const tArr = dayObj.afternoon || [];
-        if((fTurn === "both" || fTurn === "morning") && cellHasMatch(mArr)){
-          occByDay[d].morning++;
-        }
-        if((fTurn === "both" || fTurn === "afternoon") && cellHasMatch(tArr)){
-          occByDay[d].afternoon++;
-        }
-      });
-    });
+      const occByDay = {};
+      days.forEach(d => occByDay[d] = {morning:0,afternoon:0});
 
-    const tblDay = document.createElement("table");
-    tblDay.className = "summaryTable";
-    let headDay = "";
-    if(fTurn === "morning"){
-      headDay = `
-        <thead>
-          <tr>
-            <th>Día</th>
-            <th>M ocupadas</th>
-          </tr>
-        </thead>`;
-    }else if(fTurn === "afternoon"){
-      headDay = `
-        <thead>
-          <tr>
-            <th>Día</th>
-            <th>T ocupadas</th>
-          </tr>
-        </thead>`;
-    }else{
-      headDay = `
-        <thead>
-          <tr>
-            <th>Día</th>
-            <th>M ocupadas</th>
-            <th>T ocupadas</th>
-          </tr>
-        </thead>`;
-    }
-    tblDay.innerHTML = headDay + "<tbody></tbody>";
-    const tbDay = tblDay.querySelector("tbody");
-
-    days.forEach(d => {
-      const om = occByDay[d].morning;
-      const ot = occByDay[d].afternoon;
-      const tr = document.createElement("tr");
-      if(fTurn === "morning"){
-        tr.innerHTML = `
-          <td>${dayName[d] || d}</td>
-          <td>${om} / ${totalCex}</td>`;
-      }else if(fTurn === "afternoon"){
-        tr.innerHTML = `
-          <td>${dayName[d] || d}</td>
-          <td>${ot} / ${totalCex}</td>`;
-      }else{
-        tr.innerHTML = `
-          <td>${dayName[d] || d}</td>
-          <td>${om} / ${totalCex}</td>
-          <td>${ot} / ${totalCex}</td>`;
-      }
-      tbDay.appendChild(tr);
-    });
-
-    const secDay = document.createElement("details");
-    secDay.className = "srSection";
-    const sumDay = document.createElement("summary");
-    sumDay.textContent = "Resumen por día (L-V)";
-    sumDay.className = "srSummary";
-    secDay.appendChild(sumDay);
-    secDay.appendChild(tblDay);
-    secDay.open = false;
-    content.appendChild(secDay);
-
-    // =========================
-    // RESUMEN POR CONSULTA
-    // =========================
-    const tblCex = document.createElement("table");
-    tblCex.className = "summaryTable";
-    tblCex.style.marginTop = "12px";
-    let headCex = "";
-    if(fTurn === "morning"){
-      headCex = `
-        <thead>
-          <tr>
-            <th>Consulta</th>
-            <th>M ocupadas</th>
-          </tr>
-        </thead>`;
-    }else if(fTurn === "afternoon"){
-      headCex = `
-        <thead>
-          <tr>
-            <th>Consulta</th>
-            <th>T ocupadas</th>
-          </tr>
-        </thead>`;
-    }else{
-      headCex = `
-        <thead>
-          <tr>
-            <th>Consulta</th>
-            <th>M ocupadas</th>
-            <th>T ocupadas</th>
-          </tr>
-        </thead>`;
-    }
-    tblCex.innerHTML = headCex + "<tbody></tbody>";
-    const tbCex = tblCex.querySelector("tbody");
-    const totalDays = days.length;
-
-    CEX_LIST.forEach(loc => {
-      const byDay = gridMap.get(loc);
-      let occM = 0;
-      let occT = 0;
-      if(byDay){
+      gridMap.forEach((byDay, loc) => {
+        if(!locSet.has(loc)) return;
         days.forEach(d => {
           const dayObj = byDay[d];
           if(!dayObj) return;
           const mArr = dayObj.morning || [];
           const tArr = dayObj.afternoon || [];
-          if((fTurn === "both" || fTurn === "morning") && cellHasMatch(mArr)) occM++;
-          if((fTurn === "both" || fTurn === "afternoon") && cellHasMatch(tArr)) occT++;
+          if((fTurn === "both" || fTurn === "morning") && cellHasMatch(mArr)) occByDay[d].morning++;
+          if((fTurn === "both" || fTurn === "afternoon") && cellHasMatch(tArr)) occByDay[d].afternoon++;
         });
-      }
-      const tr = document.createElement("tr");
+      });
+
+      const tblDay = document.createElement("table");
+      tblDay.className = "summaryTable";
+      let headDay = "";
       if(fTurn === "morning"){
-        tr.innerHTML = `
-          <td>${loc}</td>
-          <td>${occM} / ${totalDays}</td>`;
+        headDay = `
+          <thead><tr><th>Día</th><th>M ocupadas</th></tr></thead>`;
       }else if(fTurn === "afternoon"){
-        tr.innerHTML = `
-          <td>${loc}</td>
-          <td>${occT} / ${totalDays}</td>`;
+        headDay = `
+          <thead><tr><th>Día</th><th>T ocupadas</th></tr></thead>`;
       }else{
-        tr.innerHTML = `
-          <td>${loc}</td>
-          <td>${occM} / ${totalDays}</td>
-          <td>${occT} / ${totalDays}</td>`;
+        headDay = `
+          <thead><tr><th>Día</th><th>M ocupadas</th><th>T ocupadas</th></tr></thead>`;
       }
-      tbCex.appendChild(tr);
-    });
+      tblDay.innerHTML = headDay + "<tbody></tbody>";
+      const tbDay = tblDay.querySelector("tbody");
 
-    const secCex = document.createElement("details");
-    secCex.className = "srSection";
-    const sumCex = document.createElement("summary");
-    sumCex.textContent = "Resumen por consulta (CEX)";
-    sumCex.className = "srSummary";
-    secCex.appendChild(sumCex);
-    secCex.appendChild(tblCex);
-    secCex.open = false;
-    content.appendChild(secCex);
-  }
+      days.forEach(d => {
+        const om = occByDay[d].morning;
+        const ot = occByDay[d].afternoon;
+        const tr = document.createElement("tr");
+        if(fTurn === "morning"){
+          tr.innerHTML = `<td>${dayName[d] || d}</td><td>${om} / ${totalLoc}</td>`;
+        }else if(fTurn === "afternoon"){
+          tr.innerHTML = `<td>${dayName[d] || d}</td><td>${ot} / ${totalLoc}</td>`;
+        }else{
+          tr.innerHTML = `<td>${dayName[d] || d}</td><td>${om} / ${totalLoc}</td><td>${ot} / ${totalLoc}</td>`;
+        }
+        tbDay.appendChild(tr);
+      });
 
-  document.addEventListener("click", function(e){
+      const secDay = document.createElement("details");
+      secDay.className = "srSection";
+      const sumDay = document.createElement("summary");
+      sumDay.textContent = title;
+      sumDay.className = "srSummary";
+      secDay.appendChild(sumDay);
+      secDay.appendChild(tblDay);
+      secDay.open = false;
+      content.appendChild(secDay);
+    }
+
+    function buildLocSection(locList, title){
+      const tbl = document.createElement("table");
+      tbl.className = "summaryTable";
+      tbl.style.marginTop = "12px";
+      let head = "";
+      if(fTurn === "morning"){
+        head = `<thead><tr><th>Consulta</th><th>M ocupadas</th></tr></thead>`;
+      }else if(fTurn === "afternoon"){
+        head = `<thead><tr><th>Consulta</th><th>T ocupadas</th></tr></thead>`;
+      }else{
+        head = `<thead><tr><th>Consulta</th><th>M ocupadas</th><th>T ocupadas</th></tr></thead>`;
+      }
+      tbl.innerHTML = head + "<tbody></tbody>";
+      const tb = tbl.querySelector("tbody");
+      const totalDays = days.length;
+
+      locList.forEach(loc => {
+        const byDay = gridMap.get(loc);
+        let occM = 0, occT = 0;
+        if(byDay){
+          days.forEach(d => {
+            const dayObj = byDay[d];
+            if(!dayObj) return;
+            const mArr = dayObj.morning || [];
+            const tArr = dayObj.afternoon || [];
+            if((fTurn === "both" || fTurn === "morning") && cellHasMatch(mArr)) occM++;
+            if((fTurn === "both" || fTurn === "afternoon") && cellHasMatch(tArr)) occT++;
+          });
+        }
+        const tr = document.createElement("tr");
+        if(fTurn === "morning"){
+          tr.innerHTML = `<td>${loc}</td><td>${occM} / ${totalDays}</td>`;
+        }else if(fTurn === "afternoon"){
+          tr.innerHTML = `<td>${loc}</td><td>${occT} / ${totalDays}</td>`;
+        }else{
+          tr.innerHTML = `<td>${loc}</td><td>${occM} / ${totalDays}</td><td>${occT} / ${totalDays}</td>`;
+        }
+        tb.appendChild(tr);
+      });
+
+      const sec = document.createElement("details");
+      sec.className = "srSection";
+      const sum = document.createElement("summary");
+      sum.textContent = title;
+      sum.className = "srSummary";
+      sec.appendChild(sum);
+      sec.appendChild(tbl);
+      sec.open = false;
+      content.appendChild(sec);
+    }
+
+    // Orden de salida (mismo estilo, más contenido)
+    if(selectedCex.length){
+      buildDaySection(selectedCex, "Resumen por día (L-V)");
+      buildLocSection(selectedCex, "Resumen por consulta (CEX)");
+    }
+    if(selectedHosp.length){
+      buildDaySection(selectedHosp, "Resumen por día (L-V) (HOSP)");
+      buildLocSection(selectedHosp, "Resumen por hospitalización (HOSP)");
+    }
+  }document.addEventListener("click", function(e){
     const btn = e.target.closest("#btnCalcularSugerencias");
     if(!btn) return;
     renderSuggestionsFromStruct();
