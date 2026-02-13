@@ -1381,6 +1381,125 @@ details.gridDetails{ overflow: visible !important; }
 .gridInner.__splitModeCEX .col-hosp{ display:none !important; }
 .gridInner.__splitModeHOSP .col-cex{ display:none !important; }
 
+/* =========================
+   APPLE VISION PRO LOOK (cards, translucency)
+   ========================= */
+
+/* Subtle glass cards for collapsibles */
+details.gridDetails{
+  margin: 14px 18px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(15,23,42,0.08) !important;
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08) !important;
+  overflow: hidden; /* keeps rounded corners clean */
+}
+
+details.gridDetails + details.gridDetails{
+  margin-top: 16px !important;
+}
+
+summary.gridSummary{
+  padding: 16px 18px !important;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  user-select:none;
+}
+
+/* Title area */
+summary.gridSummary b,
+summary.gridSummary .title{
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+/* Right-side count pill */
+summary.gridSummary::after{
+  content: "";
+}
+
+.gridCountPill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width: 44px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.06);
+  border: 1px solid rgba(15,23,42,0.08);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Open state: gentle highlight */
+details.gridDetails[open] summary.gridSummary{
+  background: rgba(15,23,42,0.03) !important;
+  border-bottom: 1px solid rgba(15,23,42,0.08) !important;
+}
+
+/* Inner grid spacing */
+details.gridDetails .gridInner{
+  padding: 12px 12px 14px 12px !important;
+}
+
+/* Dark mode friendly (if you use dark theme variables) */
+@media (prefers-color-scheme: dark){
+  details.gridDetails{
+    background: rgba(2,6,23,0.55) !important;
+    border: 1px solid rgba(148,163,184,0.16) !important;
+    box-shadow: 0 12px 34px rgba(0,0,0,0.35) !important;
+  }
+  .gridCountPill{
+    background: rgba(148,163,184,0.12);
+    border: 1px solid rgba(148,163,184,0.18);
+  }
+  details.gridDetails[open] summary.gridSummary{
+    background: rgba(148,163,184,0.06) !important;
+    border-bottom: 1px solid rgba(148,163,184,0.16) !important;
+  }
+}
+
+/* =========================
+   APPLE VISION PRO – CENTERED REFINED
+   ========================= */
+
+summary.gridSummary{
+  padding: 20px 22px !important;
+  display:flex;
+  align-items:center;
+  justify-content:center !important;
+  gap:14px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-align:center;
+}
+
+summary.gridSummary .title{
+  font-weight:700;
+}
+
+.gridCountPill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.05);
+  border: 1px solid rgba(15,23,42,0.08);
+  font-size:14px;
+  font-weight:500;
+  opacity:0.95;
+}
+
+details.gridDetails[open] summary.gridSummary{
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
 </style>
 </head>
 
