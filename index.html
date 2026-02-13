@@ -1925,14 +1925,9 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     "CEX C30","CEX C31","CEX C32","CEX C33","CEX C34","CEX C35","CEX C36","CEX C37","CEX C38","CEX C39",
     "CEX C40","CEX C41","CEX C42","CEX C43","CEX C44","CEX C45","CEX C46","CEX C47","CEX C48","CEX C49",
     "CEX C50","CEX C51","CEX C52","CEX C53","CEX C54","CEX C55","CEX C56","CEX C57",
-    // Hospital (10)
-    "HOSP 0-1","HOSP 0-7","HOSP 0-8","HOSP 0-9","HOSP 1-27","HOSP 1-28",
-    "HOSP 1-29","HOSP 1-35","HOSP 1-36","HOSP 1-42A","HOSP 1-42B","HOSP 1-43",
-    "HOSP 2A-","HOSP 2A-1","HOSP 2A-13a16","HOSP 2A-2","HOSP 2A-3","HOSP 2A-6a12",
-    "HOSP 2B-","HOSP 2C-","HOSP 2C-1","HOSP 2C-10","HOSP 2C-13","HOSP 2C-14",
-    "HOSP 2C-15","HOSP 2C-16","HOSP 2C-1a4","HOSP 2C-2","HOSP 2C-4","HOSP 2C-5",
-    "HOSP 2C-5a14","HOSP 2C-6","HOSP 2C-7","HOSP 2C-8","HOSP 2D-11","HOSP 2D-12",
-    "HOSP 2D-13","HOSP 2D-15","HOSP 2D-16","HOSP 2D-8","HOSP 2D-9"
+  // Hospitalización (60 + ENF + LAB)
+...Array.from({ length: 60 }, (_, i) => `HOSP ${i + 1}`),
+"HOSP ENF","HOSP LAB"
   ];
 
   const SPECIALTIES = [
