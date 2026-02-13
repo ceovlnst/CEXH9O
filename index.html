@@ -1326,6 +1326,61 @@ details[open] .gTeamChevron{ transform: rotate(180deg); transition:.15s ease; }
     summary.gridSummary::-webkit-details-marker{ display:none; }
     .gridInner{ padding:10px 10px 12px 10px; }
 
+/* ================================
+   MEJORAS GRID: Scroll + Split
+   ================================ */
+
+/* A) Scroll horizontal real */
+.gridInner{
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  width: 100%;
+}
+
+/* Evitar que el contenido se encoja y desaparezca */
+.gridInner .gridTable,
+.gridInner table{
+  min-width: max-content !important;
+}
+
+/* Si algún padre corta el overflow, lo anulamos */
+details.gridDetails{ overflow: visible !important; }
+
+/* B) Barra superior tipo Excel (se inserta por JS) */
+.gridScrollWrap{ width:100%; }
+.gridScrollTop{
+  overflow-x:auto;
+  overflow-y:hidden;
+  height:14px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background: var(--card);
+  margin: 6px 0 8px 0;
+}
+.gridScrollTopSpacer{ height:1px; width:2000px; }
+
+/* C) Split CEX/HOSP por columnas (se clasifica por JS) */
+.gridSplitBar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin: 6px 0 10px 0;
+  flex-wrap:wrap;
+}
+.gridSplitBar .btn{
+  padding:6px 10px;
+}
+.gridSplitBar .tag{
+  font-size:12px;
+  color: var(--muted);
+}
+
+.gridInner.__splitModeAll{ }
+.gridInner.__splitModeCEX .col-hosp{ display:none !important; }
+.gridInner.__splitModeHOSP .col-cex{ display:none !important; }
+
 </style>
 </head>
 
@@ -5802,6 +5857,177 @@ document.addEventListener("click", function(ev){
 })();
 </script>
 
+
+<!-- ================================
+     MEJORAS GRID (A+B+C)
+     ================================ -->
+<script>
+(function(){
+  function enableHorizontalWheelScroll(el){
+    if(!el || el.__wheelBound) return;
+    el.__wheelBound = true;
+    el.addEventListener("wheel", (e)=>{
+      // Trackpad horizontal natural => no tocar
+      if(Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      // Shift + rueda => horizontal
+      if(e.shiftKey){
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    }, { passive:false });
+  }
+
+  function ensureTopScrollbar(inner){
+    if(!inner || inner.__topScrollReady) return;
+    inner.__topScrollReady = true;
+
+    // Wrap
+    const wrap = document.createElement("div");
+    wrap.className = "gridScrollWrap";
+
+    const top = document.createElement("div");
+    top.className = "gridScrollTop";
+    top.setAttribute("aria-hidden","true");
+
+    const spacer = document.createElement("div");
+    spacer.className = "gridScrollTopSpacer";
+    top.appendChild(spacer);
+
+    // Insert wrap in DOM (wrap replaces inner position)
+    const parent = inner.parentNode;
+    parent.insertBefore(wrap, inner);
+    wrap.appendChild(top);
+    wrap.appendChild(inner);
+
+    // Sync bidireccional
+    const lock = { t:false, b:false };
+    top.addEventListener("scroll", ()=>{
+      if(lock.t) return;
+      lock.b = true;
+      inner.scrollLeft = top.scrollLeft;
+      lock.b = false;
+    });
+    inner.addEventListener("scroll", ()=>{
+      if(lock.b) return;
+      lock.t = true;
+      top.scrollLeft = inner.scrollLeft;
+      lock.t = false;
+    });
+
+    function recalc(){
+      // Ajusta spacer al ancho real del contenido
+      spacer.style.width = Math.max(inner.scrollWidth, inner.clientWidth) + "px";
+      // Mantener sincronizado
+      top.scrollLeft = inner.scrollLeft;
+    }
+    recalc();
+
+    // Recalcular cuando cambie el tamaño o el contenido
+    const ro = new ResizeObserver(()=>recalc());
+    ro.observe(inner);
+    // Mutation observer del contenido del grid
+    const mo = new MutationObserver(()=>recalc());
+    mo.observe(inner, { childList:true, subtree:true });
+  }
+
+  // C) Split: detectar columnas por el texto del header ("CEX ..." / "HOSP ...")
+  function decorateTableColumns(inner){
+    if(!inner) return;
+    const table = inner.querySelector("table");
+    if(!table) return;
+
+    // Evitar repetir
+    const sig = table.getAttribute("data-split-decorated");
+    if(sig === "1") return;
+
+    // Buscar header row: primera fila con muchas celdas (th/td)
+    const rows = Array.from(table.querySelectorAll("tr"));
+    if(!rows.length) return;
+
+    let headerRow = null;
+    let maxCells = 0;
+    for(const r of rows.slice(0, 6)){ // primeras filas
+      const cells = r.querySelectorAll("th,td");
+      if(cells.length > maxCells){
+        maxCells = cells.length;
+        headerRow = r;
+      }
+    }
+    if(!headerRow || maxCells < 2) return;
+
+    const headerCells = Array.from(headerRow.querySelectorAll("th,td"));
+    const colType = headerCells.map(c=>{
+      const t = (c.textContent || "").trim();
+      if(t.startsWith("CEX ")) return "cex";
+      if(t.startsWith("HOSP ")) return "hosp";
+      return "";
+    });
+
+    // Si no encontramos nada, no decoramos
+    if(!colType.some(x=>x==="cex" || x==="hosp")) return;
+
+    // Asignar clase a cada celda por índice
+    rows.forEach(r=>{
+      const cells = Array.from(r.querySelectorAll("th,td"));
+      cells.forEach((c, i)=>{
+        if(colType[i]==="cex") c.classList.add("col-cex");
+        if(colType[i]==="hosp") c.classList.add("col-hosp");
+      });
+    });
+
+    table.setAttribute("data-split-decorated","1");
+  }
+
+  function ensureSplitBar(inner){
+    if(!inner || inner.__splitBarReady) return;
+    inner.__splitBarReady = true;
+
+    // Barra de botones encima del grid
+    const bar = document.createElement("div");
+    bar.className = "gridSplitBar";
+    bar.innerHTML = `
+      <button class="btn ghost small" type="button" data-mode="all">Ver todo</button>
+      <button class="btn ghost small" type="button" data-mode="cex">Solo CEX</button>
+      <button class="btn ghost small" type="button" data-mode="hosp">Solo HOSP</button>
+      <span class="tag">Tip: Shift + rueda para scroll horizontal</span>
+    `;
+
+    // Insertar justo antes del wrap/topscroll si existe, o antes del inner
+    const wrap = inner.closest(".gridScrollWrap");
+    const anchor = wrap ? wrap : inner;
+    anchor.parentNode.insertBefore(bar, anchor);
+
+    function setMode(mode){
+      inner.classList.remove("__splitModeAll","__splitModeCEX","__splitModeHOSP");
+      if(mode==="cex") inner.classList.add("__splitModeCEX");
+      else if(mode==="hosp") inner.classList.add("__splitModeHOSP");
+      else inner.classList.add("__splitModeAll");
+    }
+    setMode("all");
+
+    bar.addEventListener("click", (e)=>{
+      const b = e.target.closest("button[data-mode]");
+      if(!b) return;
+      const mode = b.getAttribute("data-mode");
+      setMode(mode);
+    });
+  }
+
+  function hookAll(){
+    document.querySelectorAll(".gridInner").forEach(inner=>{
+      enableHorizontalWheelScroll(inner);      // A
+      ensureTopScrollbar(inner);               // B
+      ensureSplitBar(inner);                   // C UI
+      decorateTableColumns(inner);             // C lógica
+    });
+  }
+
+  // Run now and on DOM changes
+  hookAll();
+  const mo = new MutationObserver(()=>hookAll());
+  mo.observe(document.body, { childList:true, subtree:true });
+})();
+</script>
 
 </body>
 
