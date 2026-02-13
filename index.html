@@ -1661,6 +1661,31 @@ details.gridDetails[open] summary.gridSummary{
   }
 }
 
+/* =========================
+   GENERAR CEXs – Secciones colapsables (Vision Pro)
+   ========================= */
+#viewStruct details.gridDetails.avpSection{
+  margin: 12px 0 !important;
+  background: rgba(255,255,255,0.62) !important;
+}
+
+#viewStruct details.gridDetails.avpSection summary.gridSummary{
+  justify-content: space-between !important;
+  font-size: 16px !important;
+  padding: 14px 16px !important;
+  text-align: left !important;
+}
+
+#viewStruct details.gridDetails.avpSection summary.gridSummary .gridCountPill{
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  opacity: 0.85;
+}
+
+#viewStruct details.gridDetails.avpSection[open] summary.gridSummary .gridCountPill{
+  content: "";
+}
+
 </style>
 </head>
 
@@ -1845,52 +1870,13 @@ details.gridDetails[open] summary.gridSummary{
           <h2>Generar CEXs</h2>
 
           <div class="structStack">
-            <!-- NO ESTRUCTURALES (ARRIBA) -->
-            <div class="structPanel">
-              <h3>Crear CEX NO estructural (Master)</h3>
-
-              <div class="row">
-                <div style="flex:1;min-width:200px">
-                  <label>Fecha</label>
-                  <input id="stNSDate" type="date" />
-                </div>
-                <div style="width:160px">
-                  <label>Duración (h)</label>
-                  <select id="stNSDur">
-                    <option>1</option><option>2</option><option>3</option><option>4</option>
-                    <option>5</option><option>6</option><option>7</option><option>8</option>
-                    <option>9</option><option>10</option><option>11</option><option>12</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="row">
-                </div>
-
-              <div class="row">
-                <div style="flex:1;min-width:220px">
-                  <label>Etiqueta (grupo / médico)</label>
-                  <input
-                    id="stNSLabel"
-                    list="doctorLabelList"
-                    placeholder="Escribe nombre o iniciales…"
-                    autocomplete="off"
-                  />
-                </div>
-              </div>
-
-
-              <div class="actions">
-                <button class="btn primary" id="btnNSFindSlots">Buscar huecos</button>
-                <button class="btn good" id="btnNSAssignSlot">Asignar hueco seleccionado</button>
-              </div>
-
-              <div id="stNSSlotsBox" class="slots"></div>
-              <div id="msgStructNon" class="msg hide"></div>
-            </div>
-
-            <!-- EDITOR ESTRUCTURAL -->
-            <div class="structPanel">
+    <details class="gridDetails avpSection">
+      <summary class="gridSummary">
+        <span class="title">Editor de programación estructural</span>
+        <span class="gridCountPill">Abrir</span>
+      </summary>
+      <div class="gridInner">
+<div class="structPanel">
               <div class="actions" style="margin-top:0">
                 <button class="btn" id="btnNewStruct">Nuevo</button>
                 <button class="btn good" id="btnSaveStruct">Guardar</button>
@@ -1989,13 +1975,63 @@ details.gridDetails[open] summary.gridSummary{
                   <div class="hint">Interpretación por “1º/3º lunes”, etc. según el/los weekday seleccionados.</div>
                 </div>
               </div>
-            </div>
+      </div>
+    </details>
 
-            <!-- LISTA ESTRUCTURAL -->
-            <div class="structPanel">
-              <h3>Listado de programación estructural</h3>
+    <details class="gridDetails avpSection">
+      <summary class="gridSummary">
+        <span class="title">Crear CEX NO estructural</span>
+        <span class="gridCountPill">Abrir</span>
+      </summary>
+      <div class="gridInner">
+<div class="row">
+                <div style="flex:1;min-width:200px">
+                  <label>Fecha</label>
+                  <input id="stNSDate" type="date" />
+                </div>
+                <div style="width:160px">
+                  <label>Duración (h)</label>
+                  <select id="stNSDur">
+                    <option>1</option><option>2</option><option>3</option><option>4</option>
+                    <option>5</option><option>6</option><option>7</option><option>8</option>
+                    <option>9</option><option>10</option><option>11</option><option>12</option>
+                  </select>
+                </div>
+              </div>
 
-              <div id="structSummary" class="msg" style="margin-top:8px"></div>
+              <div class="row">
+                </div>
+
+              <div class="row">
+                <div style="flex:1;min-width:220px">
+                  <label>Etiqueta (grupo / médico)</label>
+                  <input
+                    id="stNSLabel"
+                    list="doctorLabelList"
+                    placeholder="Escribe nombre o iniciales…"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+
+
+              <div class="actions">
+                <button class="btn primary" id="btnNSFindSlots">Buscar huecos</button>
+                <button class="btn good" id="btnNSAssignSlot">Asignar hueco seleccionado</button>
+              </div>
+
+              <div id="stNSSlotsBox" class="slots"></div>
+              <div id="msgStructNon" class="msg hide"></div>
+      </div>
+    </details>
+
+    <details class="gridDetails avpSection">
+      <summary class="gridSummary">
+        <span class="title">Listado de programación estructural</span>
+        <span class="gridCountPill">Abrir</span>
+      </summary>
+      <div class="gridInner">
+<div id="structSummary" class="msg" style="margin-top:8px"></div>
 
               <div class="hr"></div>
 
@@ -2042,8 +2078,10 @@ details.gridDetails[open] summary.gridSummary{
 
               <div id="msgStruct" class="msg hide"></div>
               <div id="structList" class="tableWrap" style="margin-top:10px"></div>
+      </div>
+    </details>
+
             </div>
-          </div>
         </div>
 
         <!-- MASTER: WAIT (ACTUALIZADO a “función nueva”) -->
